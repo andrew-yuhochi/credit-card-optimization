@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 1 |
+| Done | 2 |
 | In Progress | 0 |
-| To Do | 26 |
+| To Do | 25 |
 | Blocked | 0 |
 
 ---
@@ -40,7 +40,7 @@
 
 ### TASK-002: Static Data Files and Configuration
 
-- **Status**: To Do
+- **Status**: Done (2026-04-15)
 - **Agent**: `data-pipeline`
 - **Complexity**: Low
 - **Depends on**: TASK-001

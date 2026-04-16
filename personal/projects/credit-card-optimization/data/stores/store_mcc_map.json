@@ -1,0 +1,47 @@
+{
+  "costco": {
+    "mcc": "5300",
+    "default_category": "wholesale",
+    "note": "Wholesale Club — NOT grocery on most networks. Mastercard only in-store.",
+    "acceptance": {
+      "visa": false,
+      "mastercard": true,
+      "amex": false
+    }
+  },
+  "walmart": {
+    "mcc": "5310",
+    "default_category": "other",
+    "note": "Discount Store / General Merchandise — NOT grocery on most networks."
+  },
+  "shoppers_drug_mart": {
+    "mcc": "5912",
+    "default_category": "pharmacy",
+    "note": "Pharmacy — varies by issuer. CIBC treats as bills/other (not grocery). PC Financial has explicit 5% tier. Scotia/Amex unconfirmed."
+  },
+  "canadian_tire": {
+    "mcc": "5541",
+    "default_category": "other",
+    "note": "Auto parts / Home / General — classification varies by card network and purchase type."
+  },
+  "loblaws": {
+    "mcc": "5411",
+    "default_category": "grocery",
+    "note": "Supermarket. Includes Loblaws, No Frills, Real Canadian Superstore, Maxi, Provigo."
+  },
+  "amazon_ca": {
+    "mcc": "5942",
+    "default_category": "other",
+    "note": "Online retail — classified as general merchandise or book store, NOT physical retail category."
+  },
+  "lcbo": {
+    "mcc": "5921",
+    "default_category": "other",
+    "note": "Liquor store — often a separate category or falls under 'other'."
+  },
+  "lowes": {
+    "mcc": "5211",
+    "default_category": "other",
+    "note": "Home improvement / Lumber — NOT grocery."
+  }
+}

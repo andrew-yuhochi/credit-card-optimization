@@ -1,0 +1,284 @@
+{
+  "schema_version": "1.0",
+  "cards": [
+    {
+      "id": "cibc_dividend_vi",
+      "name": "CIBC Dividend Visa Infinite",
+      "issuer": "CIBC",
+      "network": "Visa",
+      "annual_fee": 120.0,
+      "first_year_fee": 0.0,
+      "requires_amex": false,
+      "approval": {
+        "min_credit_score": 660,
+        "min_personal_income": 60000,
+        "min_household_income": 100000,
+        "source": "community",
+        "confidence": "medium"
+      },
+      "category_rates": {
+        "grocery": 4.0,
+        "gas": 4.0,
+        "dining": 2.0,
+        "transit": 2.0,
+        "recurring": 2.0,
+        "streaming": 2.0,
+        "drugstore": 2.0,
+        "other": 1.0
+      },
+      "category_caps_monthly": {},
+      "store_overrides": {
+        "shoppers_drug_mart": {
+          "rate": 2.0,
+          "source": "community",
+          "note": "Shoppers Drug Mart is MCC 5912 (pharmacy), not 5411 (grocery). Earns the recurring/bills rate, NOT the 4% grocery rate."
+        },
+        "costco": {
+          "rate": 1.0,
+          "source": "issuer",
+          "note": "Costco is MCC 5300 (wholesale). Earns base rate. Also: Visa not accepted in-store at Costco Canada."
+        },
+        "walmart": {
+          "rate": 1.0,
+          "source": "community",
+          "note": "Walmart is MCC 5310 (general merchandise), not grocery. Earns base rate."
+        }
+      },
+      "store_acceptance": {
+        "costco_instore": false,
+        "costco_online": true
+      },
+      "point_system": "cashback",
+      "cpp_default": 1.0,
+      "last_verified_date": "2026-04-15",
+      "source_url": "https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite-card.html",
+      "override_notes": "No category caps confirmed. First-year fee waived ($0). Credit score 660+ is community estimate (Visa Infinite tier).",
+      "is_dummy": false
+    },
+    {
+      "id": "scotiabank_gold_amex",
+      "name": "Scotiabank Gold American Express Card",
+      "issuer": "Scotiabank",
+      "network": "Amex",
+      "annual_fee": 120.0,
+      "first_year_fee": 0.0,
+      "requires_amex": true,
+      "approval": {
+        "min_credit_score": 620,
+        "min_personal_income": 12000,
+        "min_household_income": 12000,
+        "source": "community",
+        "confidence": "medium"
+      },
+      "category_rates": {
+        "grocery": 5.0,
+        "dining": 5.0,
+        "food_delivery": 5.0,
+        "entertainment": 5.0,
+        "streaming": 3.0,
+        "gas": 3.0,
+        "transit": 3.0,
+        "other": 1.0
+      },
+      "category_caps_monthly": {
+        "_combined_accelerated": 4166.67
+      },
+      "store_overrides": {
+        "costco": {
+          "rate": 1.0,
+          "source": "issuer",
+          "note": "Costco is wholesale MCC. Also: Amex not accepted in-store at Costco Canada."
+        },
+        "walmart": {
+          "rate": 1.0,
+          "source": "community",
+          "note": "Walmart is general merchandise MCC, not grocery."
+        },
+        "shoppers_drug_mart": {
+          "rate": 1.0,
+          "source": "estimated",
+          "note": "UNCONFIRMED: Shoppers is MCC 5912 (pharmacy). Scotia T&C says 'grocery stores'. Conservatively stored as 1x until confirmed."
+        }
+      },
+      "store_acceptance": {
+        "costco_instore": false,
+        "costco_online": false
+      },
+      "point_system": "scene_plus",
+      "cpp_default": 1.0,
+      "last_verified_date": "2026-04-15",
+      "source_url": "https://www.scotiabank.com/ca/en/personal/credit-cards/american-express/gold-card.html",
+      "override_notes": "Scene+ points at 1 cpp. $50K/yr COMBINED cap across all accelerated categories (grocery+dining+food delivery+entertainment+streaming+gas+transit). Stored as $4166.67/month equivalent. No FX fee. Empire grocery stores (Sobeys, Safeway, FreshCo, Foodland, IGA, Farm Boy) earn 6x instead of 5x — not modelled separately in this seed; store_override can be added per Empire store. First-year fee waived.",
+      "is_dummy": false
+    },
+    {
+      "id": "pc_financial_we_mc",
+      "name": "PC Financial World Elite Mastercard",
+      "issuer": "PC Financial",
+      "network": "Mastercard",
+      "annual_fee": 0.0,
+      "first_year_fee": 0.0,
+      "requires_amex": false,
+      "approval": {
+        "min_credit_score": 660,
+        "min_personal_income": 80000,
+        "min_household_income": 150000,
+        "source": "community",
+        "confidence": "medium"
+      },
+      "category_rates": {
+        "grocery": 1.0,
+        "gas": 1.0,
+        "dining": 1.0,
+        "transit": 1.0,
+        "recurring": 1.0,
+        "streaming": 1.0,
+        "drugstore": 1.0,
+        "other": 1.0
+      },
+      "category_caps_monthly": {},
+      "store_overrides": {
+        "shoppers_drug_mart": {
+          "rate": 5.0,
+          "source": "issuer",
+          "note": "PC Financial explicitly defines Shoppers Drug Mart / Pharmaprix at 50x (5% equivalent). This is the highest earn rate on this card."
+        },
+        "loblaws": {
+          "rate": 4.0,
+          "source": "issuer",
+          "note": "Loblaw banner stores (Loblaws, No Frills, Real Canadian Superstore, Maxi, Joe Fresh) earn 40x (4% equivalent)."
+        },
+        "costco": {
+          "rate": 1.0,
+          "source": "community",
+          "note": "Costco is wholesale MCC. Mastercard accepted in-store. Earns base 1% (10x)."
+        },
+        "walmart": {
+          "rate": 1.0,
+          "source": "community",
+          "note": "Walmart is general merchandise MCC. Earns base 1% (10x)."
+        }
+      },
+      "store_acceptance": {
+        "costco_instore": true,
+        "costco_online": true
+      },
+      "point_system": "pc_optimum",
+      "cpp_default": 0.1,
+      "last_verified_date": "2026-04-15",
+      "source_url": "https://www.pcfinancial.ca/en/credit-cards/pc-money-account/world-elite/",
+      "override_notes": "PC Optimum points: 1 point = $0.001. 10x=$0.01 per $1 (1%), 40x=$0.04 per $1 (4%), 50x=$0.05 per $1 (5%). Redeemable only at Loblaw stores. Esso/Mobil gas earns 30 pts/litre (complex, approximated as base rate here). No annual fee. IMPORTANT: PrinceOfTravel shows regular PC MC rates, not World Elite. World Elite rates confirmed from official pcfinancial.ca embedded JSON.",
+      "is_dummy": false
+    },
+    {
+      "id": "rogers_red_we_mc",
+      "name": "Rogers Red World Elite Mastercard",
+      "issuer": "Rogers Bank",
+      "network": "Mastercard",
+      "annual_fee": 0.0,
+      "first_year_fee": 0.0,
+      "requires_amex": false,
+      "approval": {
+        "min_credit_score": 660,
+        "min_personal_income": 80000,
+        "min_household_income": 150000,
+        "source": "community",
+        "confidence": "medium"
+      },
+      "category_rates": {
+        "grocery": 1.5,
+        "gas": 1.5,
+        "dining": 1.5,
+        "transit": 1.5,
+        "recurring": 1.5,
+        "streaming": 1.5,
+        "drugstore": 1.5,
+        "other": 1.5
+      },
+      "category_caps_monthly": {},
+      "store_overrides": {
+        "costco": {
+          "rate": 1.5,
+          "source": "issuer",
+          "note": "Flat-rate card. Mastercard accepted at Costco in-store. Earns 1.5% (non-Rogers customer rate)."
+        },
+        "walmart": {
+          "rate": 1.5,
+          "source": "issuer",
+          "note": "Flat-rate card. Earns 1.5%."
+        },
+        "shoppers_drug_mart": {
+          "rate": 1.5,
+          "source": "issuer",
+          "note": "Flat-rate card. Earns 1.5%."
+        }
+      },
+      "store_acceptance": {
+        "costco_instore": true,
+        "costco_online": true
+      },
+      "point_system": "cashback",
+      "cpp_default": 1.0,
+      "last_verified_date": "2026-04-15",
+      "source_url": "https://rogersbank.com/en/rogers_red_world_elite_mastercard",
+      "override_notes": "Flat-rate card: 1.5% on all CAD purchases (non-Rogers/Fido/Shaw customers), 2.0% for Rogers/Fido/Shaw customers, 3% on USD purchases. Rates stored here are the NON-Rogers-customer rates (conservative). Rogers customer rate (2%) can be modelled via a config flag or separate card entry. 1.5x redemption bonus when applied to Rogers/Fido/Shaw bills (not modelled — requires user flag). Renamed from 'Rogers World Elite Mastercard' on April 9, 2024. No annual fee. No minimum spend requirement (removed April 2024).",
+      "is_dummy": false
+    },
+    {
+      "id": "amex_cobalt",
+      "name": "American Express Cobalt Card",
+      "issuer": "American Express",
+      "network": "Amex",
+      "annual_fee": 191.88,
+      "first_year_fee": 191.88,
+      "requires_amex": true,
+      "approval": {
+        "min_credit_score": 660,
+        "min_personal_income": 15000,
+        "min_household_income": 15000,
+        "source": "estimated",
+        "confidence": "low"
+      },
+      "category_rates": {
+        "grocery": 5.0,
+        "dining": 5.0,
+        "food_delivery": 5.0,
+        "streaming": 3.0,
+        "transit": 2.0,
+        "gas": 2.0,
+        "travel": 2.0,
+        "other": 1.0
+      },
+      "category_caps_monthly": {
+        "_combined_eats_drinks": 2500.0
+      },
+      "store_overrides": {
+        "costco": {
+          "rate": 1.0,
+          "source": "issuer",
+          "note": "Costco is wholesale MCC. Also: Amex not accepted in-store at Costco Canada."
+        },
+        "walmart": {
+          "rate": 1.0,
+          "source": "community",
+          "note": "Walmart is general merchandise MCC, not grocery."
+        },
+        "shoppers_drug_mart": {
+          "rate": 1.0,
+          "source": "community",
+          "note": "Shoppers Drug Mart is MCC 5912 (pharmacy). Amex MR grocery rate uses MCC 5411. Community consensus: earns 1x at Shoppers."
+        }
+      },
+      "store_acceptance": {
+        "costco_instore": false,
+        "costco_online": false
+      },
+      "point_system": "amex_mr",
+      "cpp_default": 2.0,
+      "last_verified_date": "2026-04-15",
+      "source_url": "https://www.americanexpress.com/ca/en/credit-cards/cobalt-card/",
+      "override_notes": "Amex MR points at 2.0 cpp default. $2,500/month COMBINED cap on 'Eats & Drinks' categories (grocery+dining+food delivery). After cap, all three revert to 1x for remainder of month. Billed monthly at $15.99/month ($191.88/yr). No first-year fee waiver. Amex does not publish income minimums — $15K is community estimate with low confidence. Transferable to Aeroplan 1:1, Avios 1:1, Marriott 5:6, etc.",
+      "is_dummy": false
+    }
+  ]
+}
