@@ -1,0 +1,12 @@
+.env
+*.db
+__pycache__/
+.venv/
+*.pyc
+data/cc_optimizer.db
+.pytest_cache/
+htmlcov/
+.coverage
+*.egg-info/
+dist/
+build/
