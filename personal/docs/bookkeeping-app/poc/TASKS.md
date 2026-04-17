@@ -383,21 +383,21 @@
 ---
 
 ### TASK-021: Transaction Detail Drawer
-- **Status**: Not started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl)
 - **Complexity**: Medium
 - **Depends on**: TASK-017
 - **Context**: Implements UX-SPEC Touchpoint 6 — the side drawer that slides in from the right when Andrew clicks any transaction row, showing full metadata including the accounting-period override. This resolves the UX Open Question (accounting period default = cash date's month, manual override here).
 - **Description**: Implement `GET /transactions/{id}/drawer` returning an HTMX partial rendering the drawer. Drawer contains: merchant, amount, original currency + rate + rate source, category with classifier confidence + top 3 alternates, responsibility radio, accounting period selector (month picker defaulting to cash_date's month), notes field, source file reference, classifier audit trail. Implement `POST /transactions/{id}/update` to apply changes to session state.
 - **Acceptance Criteria**:
-  - [ ] Clicking any transaction row in any page opens the drawer without leaving the current page
-  - [ ] Drawer shows rate source ("statement" / "BoC daily average" / "manual") with clear labeling
-  - [ ] Accounting period shows cash date and a month picker (default = cash date's month per TDD Section 2.4)
-  - [ ] Changing accounting period in the drawer moves the transaction to that month's view
-  - [ ] Notes field accepts free text
-  - [ ] Classifier audit trail shows `"classified by tfidf_lr at 0.84 on 2026-04-15"` format
-  - [ ] `Esc` or clicking outside closes the drawer without losing other session edits
-  - [ ] Changes from the drawer are held in session state until Save
+  - [x] Clicking any transaction row in any page opens the drawer without leaving the current page
+  - [x] Drawer shows rate source ("statement" / "BoC daily average" / "manual") with clear labeling
+  - [x] Accounting period shows cash date and a month picker (default = cash date's month per TDD Section 2.4)
+  - [x] Changing accounting period in the drawer moves the transaction to that month's view
+  - [x] Notes field accepts free text
+  - [x] Classifier audit trail shows `"classified by tfidf_lr at 0.84 on 2026-04-15"` format
+  - [x] `Esc` or clicking outside closes the drawer without losing other session edits
+  - [x] Changes from the drawer are held in session state until Save
 
 ---
 
