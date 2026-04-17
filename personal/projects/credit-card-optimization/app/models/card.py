@@ -1,6 +1,6 @@
 """Pydantic models for credit card data.
 
-Covers: CardRecord, ApprovalRequirements, StoreOverride.
+Covers: CardRecord, ApprovalRequirements, StoreOverride, StoreMccEntry.
 Schema matches data/cards/cards.json (schema_version 1.0).
 """
 
@@ -25,6 +25,15 @@ class StoreOverride(BaseModel):
     rate: float = Field(ge=0)
     source: Literal["issuer", "community", "estimated"]
     note: str = ""
+
+
+class StoreMccEntry(BaseModel):
+    """A store's MCC code and default category from store_mcc_map.json."""
+
+    mcc: str
+    default_category: str
+    note: str = ""
+    acceptance: dict[str, bool] = {}
 
 
 class CardRecord(BaseModel):

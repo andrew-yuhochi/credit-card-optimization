@@ -1,6 +1,6 @@
 """Pydantic models for the credit card optimization engine."""
 
-from app.models.card import ApprovalRequirements, CardRecord, StoreOverride
+from app.models.card import ApprovalRequirements, CardRecord, StoreMccEntry, StoreOverride
 from app.models.optimization import (
     AssignmentRow,
     CardSummaryRow,
@@ -31,5 +31,6 @@ __all__ = [
     "PersonProfile",
     "SpendBucket",
     "SpendingProfile",
+    "StoreMccEntry",
     "StoreOverride",
 ]

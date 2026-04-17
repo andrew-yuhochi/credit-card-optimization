@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 3 |
+| Done | 4 |
 | In Progress | 0 |
-| To Do | 24 |
+| To Do | 23 |
 | Blocked | 0 |
 
 ---
@@ -80,7 +80,7 @@
 
 ### TASK-004: Card Database Loader
 
-- **Status**: To Do
+- **Status**: Done (2026-04-17)
 - **Agent**: `data-pipeline`
 - **Complexity**: Low
 - **Depends on**: TASK-003
