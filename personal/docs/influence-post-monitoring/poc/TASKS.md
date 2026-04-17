@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 11 |
+| Done | 12 |
 | In Progress | 0 |
-| Not Started | 9 |
+| Not Started | 8 |
 | Blocked | 0 |
 
 ---
@@ -269,7 +269,7 @@
 ---
 
 ### TASK-012: Morning watchlist email renderer
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: Medium
 - **Depends on**: TASK-010, TASK-009, TASK-011
@@ -277,19 +277,19 @@
 - **Context**: The signal card is the atomic UX unit. Every field was chosen deliberately in UX-SPEC.md. Plain-text-first rendering is non-negotiable — mobile at 7 AM is the primary context. The renderer must correctly handle edge cases: no signals, <10 signals, Burry posts that have since been deleted.
 - **Description**: Implement `email/renderer.py` for the morning watchlist. Render both HTML and plain-text versions. Implement all edge case states from UX-SPEC.md. Subject line format from UX-SPEC.md conventions section.
 - **Acceptance Criteria**:
-  - [ ] Renders signal cards in the format from UX-SPEC.md wireframe: rank, direction badge, ticker, index tier, poster name, quote fragment (max 2–3 lines), track record badge, signal strength dots (●●●●○), corroboration flag
-  - [ ] Track record badge shows `"Track record: building..."` when `investor_profiles.total_calls < 5`
-  - [ ] Track record shows `"{X}/{N} ({pct}%)"` when `total_calls >= 5`
-  - [ ] Signal strength dots: 5 levels mapped from composite score 0–10 (`●○○○○` to `●●●●●`)
-  - [ ] Corroboration shown as `"CORROBORATED — N posters"` when `corroboration_count >= 2`
-  - [ ] No-signals email renders the "No Signals Overnight" template from UX-SPEC.md
-  - [ ] Subject line follows the convention: `Influence Monitor — {N} Signals Today [{Mon DD}] | Top: {TICKER} ({DIR}, {BARS})`
-  - [ ] Plain-text version is complete and readable without HTML rendering (no information loss)
-  - [ ] No CSS dependency for any required information — Unicode circles render as plain text fallback
-  - [ ] Quote fragment uses stored post text from DB (never a live API call) — Burry deletion protection
-  - [ ] SHORT signals display direction badge explicitly; SHORT stocks that drop are correctly labeled as HIT on scorecard
-  - [ ] Unit tests: render with 10 signals (normal), 0 signals (no-signal email), 3 signals (fewer-than-10 email), one post with deleted text (graceful handling)
-- **Notes**: Email template files in `email/templates/`. The renderer reads from DB, not from in-memory objects, so it can be run independently for testing.
+  - [x] Renders signal cards in the format from UX-SPEC.md wireframe: rank, direction badge, ticker, index tier, poster name, quote fragment (max 2–3 lines), track record badge, signal strength dots (●●●●○), corroboration flag
+  - [x] Track record badge shows `"Track record: building..."` when `investor_profiles.total_calls < 5`
+  - [x] Track record shows `"{X}/{N} ({pct}%)"` when `total_calls >= 5`
+  - [x] Signal strength dots: 5 levels mapped from composite score 0–10 (`●○○○○` to `●●●●●`)
+  - [x] Corroboration shown as `"CORROBORATED — N posters"` when `corroboration_count >= 2`
+  - [x] No-signals email renders the "No Signals Overnight" template from UX-SPEC.md
+  - [x] Subject line follows the convention: `Influence Monitor — {N} Signals Today [{Mon DD}] | Top: {TICKER} ({DIR}, {BARS})`
+  - [x] Plain-text version is complete and readable without HTML rendering (no information loss)
+  - [x] No CSS dependency for any required information — Unicode circles render as plain text fallback
+  - [x] Quote fragment uses stored post text from DB (never a live API call) — Burry deletion protection
+  - [x] SHORT signals display direction badge explicitly; SHORT stocks that drop are correctly labeled as HIT on scorecard (SHORT direction badge rendered in morning email; HIT/MISS labeling deferred to TASK-013 scorecard)
+  - [x] Unit tests: render with 10 signals (normal), 0 signals (no-signal email), 3 signals (fewer-than-10 email), one post with deleted text (graceful handling)
+- **Notes**: Email template files in `email/templates/`. The renderer reads from DB (new `get_morning_watchlist` repo method), not from in-memory objects, so it can be run independently for testing. HTML body wraps the plain-text body in `<pre>` with minimal inline styles — no load-bearing CSS. User-controlled content is HTML-escaped.
 
 ---
 
