@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 9 |
+| Done | 10 |
 | In Progress | 0 |
-| Not Started | 11 |
+| Not Started | 10 |
 | Blocked | 0 |
 
 ---
@@ -225,7 +225,7 @@
 ## Sprint 6: Signal Aggregation
 
 ### TASK-010: Corroboration detector and signal aggregator
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: Medium
 - **Depends on**: TASK-007
@@ -233,15 +233,15 @@
 - **Context**: Corroboration ("if 2+ credible persons have similar posts on the same day") was explicitly named by the user as a distinct signal amplifier, not just a score boost. It gets a visible "CORROBORATED" tag in the email — it is a qualitative shift, not just a multiplier.
 - **Description**: Implement `scoring/corroboration.py` with `CorroborationDetector` and `scoring/aggregator.py` with `SignalAggregator`. The detector groups signals by (ticker, direction, date) and applies the corroboration multiplier. The aggregator ranks by final score and returns the top N.
 - **Acceptance Criteria**:
-  - [ ] `CorroborationDetector.detect(signals: list[Signal]) -> list[Signal]` sets `corroboration_count` and `corroboration_bonus` on each signal
-  - [ ] Signals with 2+ distinct investors (same ticker, same direction, same date): `corroboration_count >= 2`, `corroboration_bonus = settings.corroboration_multiplier` (default 1.5)
-  - [ ] `final_score = composite_score * corroboration_bonus`
-  - [ ] `corroboration_bonus` is read from `scoring_weights` or `settings`, not hardcoded
-  - [ ] `SignalAggregator.rank(signals: list[Signal], top_n: int) -> list[Signal]` returns signals sorted by `final_score` descending, deduplicated by ticker (highest score per ticker kept)
-  - [ ] Unit test: 3 investors posting LONG FNMA on same day → all three have `corroboration_count=3`
-  - [ ] Unit test: 1 investor LONG FNMA + 1 investor SHORT FNMA → no corroboration (directions differ)
-  - [ ] Unit test: same investor posts FNMA twice → still `corroboration_count=1` (distinct investors only)
-  - [ ] Unit test: top_n=10 with 15 signals → returns 10 highest-scored, correctly ranked
+  - [x] `CorroborationDetector.detect(signals: list[Signal]) -> list[Signal]` sets `corroboration_count` and `corroboration_bonus` on each signal
+  - [x] Signals with 2+ distinct investors (same ticker, same direction, same date): `corroboration_count >= 2`, `corroboration_bonus = settings.corroboration_multiplier` (default 1.5)
+  - [x] `final_score = composite_score * corroboration_bonus`
+  - [x] `corroboration_bonus` is read from `scoring_weights` or `settings`, not hardcoded
+  - [x] `SignalAggregator.rank(signals: list[Signal], top_n: int) -> list[Signal]` returns signals sorted by `final_score` descending, deduplicated by ticker (highest score per ticker kept)
+  - [x] Unit test: 3 investors posting LONG FNMA on same day → all three have `corroboration_count=3`
+  - [x] Unit test: 1 investor LONG FNMA + 1 investor SHORT FNMA → no corroboration (directions differ)
+  - [x] Unit test: same investor posts FNMA twice → still `corroboration_count=1` (distinct investors only)
+  - [x] Unit test: top_n=10 with 15 signals → returns 10 highest-scored, correctly ranked
 - **Notes**: Store corroboration data in `signals.corroboration_count` and `signals.corroboration_bonus` in DB — this is needed for the evening scorecard and future analysis.
 
 ---
