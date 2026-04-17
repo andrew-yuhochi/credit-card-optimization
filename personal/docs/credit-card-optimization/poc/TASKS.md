@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 4 |
+| Done | 5 |
 | In Progress | 0 |
-| To Do | 23 |
+| To Do | 22 |
 | Blocked | 0 |
 
 ---
@@ -100,7 +100,7 @@
 
 ### TASK-005: Eligibility Pre-Filter
 
-- **Status**: To Do
+- **Status**: Done (2026-04-17)
 - **Agent**: `data-pipeline`
 - **Complexity**: Medium
 - **Depends on**: TASK-003, TASK-004
