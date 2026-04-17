@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 10 |
+| Done | 11 |
 | In Progress | 0 |
-| Not Started | 10 |
+| Not Started | 9 |
 | Blocked | 0 |
 
 ---
@@ -249,7 +249,7 @@
 ## Sprint 7: Email Generation and Delivery
 
 ### TASK-011: Email provider interface and Resend implementation
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: Low
 - **Depends on**: TASK-001
@@ -257,14 +257,14 @@
 - **Context**: Email delivery is abstracted behind `EmailProvider` ABC so that swapping Resend to SendGrid or SES at Phase 2 is a single-file change. The Resend free tier (3,000/month) is sufficient for PoC.
 - **Description**: Implement `email/base.py` with `EmailProvider` ABC. Implement `email/resend_provider.py` with `ResendEmailProvider`. Create `EMAIL_REGISTRY`.
 - **Acceptance Criteria**:
-  - [ ] `EmailProvider` ABC defines `send(to: str, subject: str, html_body: str, text_body: str) -> str` (returns message_id)
-  - [ ] `ResendEmailProvider` reads `RESEND_API_KEY` from settings
-  - [ ] `ResendEmailProvider.send()` calls `resend.Emails.send()` with both `html` and `text` fields populated
-  - [ ] On send failure: retry once after 30 seconds, then raise `EmailDeliveryError` (do not retry further — avoid duplicate emails)
-  - [ ] `ResendEmailProvider.send()` logs `provider='resend'`, `status`, `latency_ms` to `api_usage` table
-  - [ ] `EMAIL_REGISTRY` maps `"resend"` to `ResendEmailProvider`; `SendGridEmailProvider` stub exists
+  - [x] `EmailProvider` ABC defines `send(to: str, subject: str, html_body: str, text_body: str) -> str` (returns message_id)
+  - [x] `ResendEmailProvider` reads `RESEND_API_KEY` from settings
+  - [x] `ResendEmailProvider.send()` calls `resend.Emails.send()` with both `html` and `text` fields populated
+  - [x] On send failure: retry once after 30 seconds, then raise `EmailDeliveryError` (do not retry further — avoid duplicate emails)
+  - [x] `ResendEmailProvider.send()` logs `provider='resend'`, `status`, `latency_ms` to `api_usage` table
+  - [x] `EMAIL_REGISTRY` maps `"resend"` to `ResendEmailProvider`; `SendGridEmailProvider` stub exists
   - [ ] Integration test (manual): send a test email to `settings.recipient_email` and verify receipt
-- **Notes**: Sender domain must be verified in Resend dashboard before first use. Add setup instructions to README.
+- **Notes**: Sender domain must be verified in Resend dashboard before first use. Add setup instructions to README. Manual integration test deferred — requires verified Resend domain.
 
 ---
 
