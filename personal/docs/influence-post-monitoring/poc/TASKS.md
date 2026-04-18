@@ -368,7 +368,7 @@
 ---
 
 ### TASK-016: GitHub Actions scheduling workflows
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: Low
 - **Depends on**: TASK-015
