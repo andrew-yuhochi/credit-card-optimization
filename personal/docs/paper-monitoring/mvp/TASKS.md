@@ -8,28 +8,33 @@
 ## Progress Summary
 | Status | Count |
 |--------|-------|
-| Done | 0 |
+| Done | 4 |
 | In Progress | 0 |
-| To Do | 28 |
+| To Do | 24 |
 | Blocked | 0 |
+
+> **M1 Review note (2026-04-17)**: User reviewed Milestone 1 and required 3D graph visualization (replacing `streamlit-agraph`). Original M1 split into M1 (HTML prototype, visual validation) and M2 (custom component + editing). All subsequent milestones renumbered M3–M8. TASK-003 and TASK-004 revised for 3D approach. TASK-001, TASK-002, TASK-005 remain Done.
 
 ---
 
-## Milestone 1: "I can see and edit a hand-crafted knowledge graph"
+## Milestone 1: "I can explore the tree-based knowledge graph in 3D"
 
-> **Goal**: An interactive, editable graph of ~15 hand-crafted tree-based model concepts. The user validates the schema, relationship types, and editing UX before any LLM touches the graph. The test domain is **tree-based models** (Decision Tree, Random Forest, Gradient Boosting, XGBoost, LightGBM, CatBoost) — the user has full mastery and can immediately judge quality.
+> **Goal**: A 3D force-directed graph of ~17 hand-crafted tree-based model concepts renders in the Streamlit dashboard. The user validates the 3D visual experience — fog, fly-through, hop slider, perspective depth — before any editing or LLM work begins. The seed data (TASK-005) is already in place; this milestone is purely a visual validation gate.
 > **Acceptance Criteria**:
-> - Graph visualization shows ~15 nodes with all 7 relationship types represented
-> - User can click a node, see its properties, and edit them inline
-> - User can add a new node, add an edge between two nodes, delete an edge, and delete a node — all through the UI
-> - Relationships are correct and useful for the tree-based domain (user validates from domain expertise)
-> - Nodes and edges track `edited_by: "user" | "llm"` for provenance
-> **Observable Deliverable**: Interactive, editable graph of tree-based models in the Streamlit dashboard
-> **Review Checkpoint**: User reviews and approves before Milestone 2 begins
-> **Status**: To Do
+> - 3D force-directed graph renders all ~17 seed nodes with all 7 relationship types
+> - Nodes appear larger near camera, smaller at periphery (WebGL perspective + force clustering)
+> - Distance fog fades nodes as they recede from camera
+> - Hop slider (1–5) filters visible nodes by BFS distance from a selected center node
+> - Fly-through camera navigation (WASD + mouse) works
+> - Camera animates to a clicked node
+> - Node type filter (checkboxes) shows/hides each of the 5 node types
+> - Relationships are visually correct and useful (user validates from domain expertise)
+> **Observable Deliverable**: Open the Streamlit Graph tab → fly through a 3D cluster of tree-based model nodes with fog and hop filtering
+> **Review Checkpoint**: User approves the 3D visual experience before Milestone 2 begins
+> **Status**: In Progress (TASK-001, TASK-002, TASK-005 Done; TASK-003 To Do)
 
 ### TASK-001: Pydantic Models for Concept-First Schema
-- **Status**: To Do
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Small
 - **Depends on**: None
@@ -43,7 +48,7 @@
   - [ ] Unit tests validate construction, defaults, and required field enforcement for all new models
 
 ### TASK-002: GraphStore Mutation Methods for Manual Editing
-- **Status**: To Do
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Small
 - **Depends on**: TASK-001
@@ -60,43 +65,75 @@
   - [ ] `get_nodes_created_since(since_date, node_type)` and `get_edges_created_since(since_date, relationship_type)` query by `created_at`
   - [ ] Unit tests for each new method including edge cases (delete nonexistent, update nonexistent)
 
-### TASK-003: Graph Visualization Component
-- **Status**: To Do
+### TASK-003: 3D Graph Visualization — HTML Prototype
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl)
 - **Complexity**: Medium
 - **Depends on**: TASK-002
-- **Context**: TDD Section 2.5.2. New "Graph" tab in dashboard using `streamlit-agraph` (fallback: pyvis with iframe). Renders neighborhood of a selected node. Node click events trigger re-render. Nodes colored by type: Problem=red, Technique=blue, Concept=green, Category=gray, Paper=yellow. Edge labels show relationship type.
-- **Description**: Implement the interactive graph visualization in the Streamlit dashboard. This is the foundation for the manual editing UI.
+- **Context**: TDD Section 2.5.2. Milestone 1 review feedback: 3D graph is required for daily usability. Replace `streamlit-agraph` (2D, stale) with `3d-force-graph` (WebGL, MIT). Stage 1: HTML prototype embedded via `st.components.v1.html`. Delivers all 5 visual features. Node click cannot yet update Python state — that is TASK-004's job.
+- **Description**: Implement the 3D graph visualization as a self-contained HTML prototype embedded in the Streamlit dashboard. Validates the 3D visual experience before building the full custom component.
 - **Acceptance Criteria**:
-  - [ ] `streamlit-agraph` added to requirements.txt with pinned version
-  - [ ] New "Graph" tab in dashboard renders an interactive node-edge graph
-  - [ ] `get_node_neighborhood(node_id, depth)` returns `{"nodes": [...], "edges": [...]}` with type-based colors
-  - [ ] Click a node: re-render graph centered on clicked node (neighborhood depth=1)
-  - [ ] Node type filter: checkboxes to show/hide Problem, Technique, Concept, Category, Paper nodes
-  - [ ] Nodes display labels and are colored by type; edge labels show relationship type
-  - [ ] Zoom and pan controls work
-  - [ ] Graph remains responsive with 50+ visible nodes
-- **Notes**: If `streamlit-agraph` click events are unreliable, switch to pyvis with iframe embedding. The data contract (nodes + edges JSON) is the same for both.
+  - [ ] New "Graph" tab in dashboard embeds 3D graph via `st.components.v1.html(html_str, height=750)`
+  - [ ] `3d-force-graph` loaded from CDN (pinned version `1.77.0`) — no pip install required
+  - [ ] `get_node_neighborhood(node_id, depth)` returns `{"nodes": [...], "edges": [...]}` with type-based color fields; called server-side and JSON-serialized into the HTML template
+  - [ ] 3D force-directed layout: nodes cluster naturally, physics simulation settles within 3 seconds for ~17 nodes
+  - [ ] Nodes colored by type: Problem=red, Technique=blue, Concept=green, Category=gray, Paper=yellow
+  - [ ] Edge labels show relationship type
+  - [ ] **Fog**: `THREE.FogExp2` applied to scene — nodes fade as they recede from camera
+  - [ ] **Fly-through**: `controlType('fly')` — WASD + mouse navigation works; orbit controls toggle also available
+  - [ ] **Camera fly-to on click**: clicking a node animates the camera to center on it (`graph.cameraPosition()`)
+  - [ ] **Hop slider**: HTML range input (1–5 hops). BFS from clicked center node. `nodeVisibility()` and `linkVisibility()` updated in real time. Full graph visible when no node is selected (depth=1 default)
+  - [ ] **Node type filter**: checkboxes to show/hide each node type
+  - [ ] Node labels visible at close camera distance, hidden when far (declutter)
+  - [ ] Renders all ~17 seed nodes from TASK-005 correctly
+  - [ ] User validates: 3D experience matches vision before TASK-004 begins
+- **Notes**: This is a visual validation gate. If the user approves, TASK-004 converts this to a full custom Streamlit component. If the user requests changes, iterate on the HTML prototype before converting.
 
-### TASK-004: Manual Graph Editing UI
-- **Status**: To Do
+---
+
+## Milestone 2: "I can edit nodes and edges through the 3D graph"
+
+> **Goal**: The HTML prototype from M1 is converted to a proper Streamlit custom component with bidirectional Python communication. The user can click a node in the 3D graph, see its properties in the sidebar, and edit them inline. Full CRUD on nodes and edges. This completes the hand-crafted prototype validation cycle.
+> **Acceptance Criteria**:
+> - Clicking a node in the 3D graph updates Python session state (custom component → `st.session_state`)
+> - Sidebar shows editable properties panel for the clicked node; "Update" saves immediately
+> - User can add a new node via sidebar form — appears in graph instantly
+> - User can delete a node with confirmation — cascades to remove all connected edges
+> - User can add an edge (two-click source → target + relationship type dropdown)
+> - User can delete an edge from the node properties panel
+> - All user edits set `edited_by: "user"` in node/edge properties
+> - User-edited nodes/edges are visually distinct from LLM-edited ones (provenance indicator)
+> - All 5 visual features from M1 preserved (fog, fly-through, hop slider, camera fly-to, type filter)
+> **Observable Deliverable**: Click any node in the 3D graph → sidebar shows editable properties → edit label or description → save. Add and delete a node. Add and delete an edge.
+> **Review Checkpoint**: User approves editing UX before Milestone 3 begins
+> **Depends on**: Milestone 1 review passed
+> **Status**: To Do
+
+### TASK-004: 3D Graph — Custom Streamlit Component + Editing UI
+- **Status**: To Do (revised 2026-04-17 — converting HTML prototype to full custom component)
 - **Agent**: data-pipeline (impl)
-- **Complexity**: Medium
-- **Depends on**: TASK-003
-- **Context**: BL-012 promoted to MVP scope. The graph visualization is not just a viewer — it is an editor. All edits set `edited_by: "user"` in the node/edge properties. Edits are immediate (no save button). User edits will be preserved during LLM re-classification in later milestones.
-- **Description**: Add editing capabilities to the graph visualization: add/remove nodes and edges, edit node properties, change relationship types.
+- **Complexity**: Large
+- **Depends on**: TASK-003 (HTML prototype reviewed and approved by user)
+- **Context**: TDD Section 2.5.2. Stage 2 of the 3D graph delivery. Convert the TASK-003 HTML prototype to a proper Streamlit custom component (`react-force-graph-3d`) with bidirectional Python communication. Required because editing operations (click node → sidebar shows editable properties → save back to Python) cannot work in a one-way HTML iframe. BL-012 promoted to MVP scope. All edits set `edited_by: "user"`. User edits preserved during LLM re-classification in later milestones.
+- **Description**: Convert the HTML prototype to a custom Streamlit component and add full graph editing capabilities. Node clicks drive the editing sidebar via Python session state.
 - **Acceptance Criteria**:
-  - [ ] **Add node**: Form in sidebar to create a new node (select type, enter label, fill properties). Node appears in graph immediately
-  - [ ] **Edit node properties**: Click a node to open a properties panel. Edit any field (label, description, approach, innovation_type, etc.). Changes save immediately via `update_node_properties()`
-  - [ ] **Delete node**: Button in properties panel to delete the selected node. Confirmation dialog. Removes node and all connected edges
-  - [ ] **Add edge**: Select two nodes (click source, then target), choose relationship type from dropdown, confirm. Edge appears immediately
-  - [ ] **Delete edge**: Click an edge (or select from edge list on a node), delete button. Edge removed immediately
-  - [ ] **Change edge type**: Delete + re-add (or direct update if GraphStore supports it). UI shows this as a single "change type" dropdown
-  - [ ] All user edits set `edited_by: "user"` in node/edge properties
-  - [ ] Editing actions are logged (Python `logging` module) for auditability
+  - [ ] Streamlit custom component scaffolded at `src/components/graph_3d/` (Python wrapper + React frontend)
+  - [ ] `react-force-graph-3d` npm package used in the React frontend (v1.29.1 or latest)
+  - [ ] All 5 visual features from TASK-003 preserved: fog, fly-through, hop slider, camera fly-to, node type filter
+  - [ ] **Bidirectional communication**: clicking a node in the 3D graph sets `st.session_state.selected_node_id` in Python
+  - [ ] **Edit node properties**: clicking a node populates a sidebar properties panel. All fields editable inline. "Update" button calls `update_node_properties()`. `edited_by` set to `"user"`.
+  - [ ] **Delete node**: "Delete" button in properties panel with confirmation dialog. Cascades to remove all connected edges.
+  - [ ] **Add node**: Sidebar form (type dropdown, label, type-specific properties). Node appears in 3D graph immediately after creation.
+  - [ ] **Add edge**: Two-step UI — click source node (highlighted), click target node, select relationship type from filtered dropdown, confirm. Edge appears immediately.
+  - [ ] **Delete edge**: Edge list shown in node properties panel. Delete button per edge with confirmation.
+  - [ ] **Visual provenance**: `edited_by: "user"` nodes rendered brighter/solid; `edited_by: "llm"` nodes slightly faded or with a marker. Implemented via `nodeThreeObject` or `nodeColor` callback.
+  - [ ] All user edits logged via Python `logging` module for auditability
+  - [ ] Built `dist/` folder committed to repo (users do not need to run `npm build`)
+  - [ ] `node` 18+ required for initial build; documented in README
+- **Notes**: If Streamlit custom component build infrastructure proves too cumbersome, fall back to: standalone React SPA on `localhost:3000` embedded via `st.components.v1.iframe`. Same visual and editing requirements apply — only the Streamlit integration method changes.
 
 ### TASK-005: Hand-Craft Tree-Based Models Graph
-- **Status**: To Do
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl)
 - **Complexity**: Small
 - **Depends on**: TASK-004
@@ -124,7 +161,7 @@
 
 ---
 
-## Milestone 2: "The LLM extraction produces a useful graph"
+## Milestone 3: "The LLM extraction produces a useful graph"
 
 > **Goal**: Run LLM extraction on ~10 real items in the tree-based domain and compare the output against the M1 hand-crafted ground truth. This validates extraction quality and determines whether `qwen2.5:7b` is sufficient or a larger model is needed.
 > **Acceptance Criteria**:
@@ -133,11 +170,11 @@
 > - ~2 survey papers about ensemble methods / tree-based models classified
 > - ~2 textbook chapters (e.g., Murphy or Hastie on decision trees / ensembles) seeded
 > - ~1 landmark paper (e.g., original Random Forest or XGBoost paper) classified
-> - LLM output compared against M1 ground truth: correct Problem, Technique, Concept nodes and relationships?
+> - LLM output compared against M2 ground truth: correct Problem, Technique, Concept nodes and relationships?
 > - Model decision documented: qwen2.5:7b sufficient, or need to upgrade?
 > **Observable Deliverable**: LLM-extracted graph overlaid with the manual prototype, differences visible in the graph editor
-> **Review Checkpoint**: User reviews and approves before Milestone 3 begins
-> **Depends on**: Milestone 1 review passed
+> **Review Checkpoint**: User reviews and approves before Milestone 4 begins
+> **Depends on**: Milestone 2 review passed
 > **Status**: To Do
 
 ### TASK-006: LLM Abstraction Layer
@@ -204,17 +241,18 @@
 
 ---
 
-## Milestone 3: "The full knowledge bank is populated"
+## Milestone 4: "The full knowledge bank is populated and browsable in 3D"
 
-> **Goal**: Extend beyond the tree-based prototype to seed the full knowledge bank from 5 textbooks (~86 chapters). Semantic deduplication keeps it clean. The graph is browsable at scale.
+> **Goal**: Extend beyond the tree-based prototype to seed the full knowledge bank from 5 textbooks (~86 chapters). Semantic deduplication keeps it clean. The 3D graph handles 800+ nodes with responsive neighborhood rendering. This milestone validates the graph at production scale.
 > **Acceptance Criteria**:
 > - Knowledge Bank tab shows 800+ concepts after seeding
 > - Fewer than 10 concept pairs at >0.90 cosine similarity (post-dedup)
-> - Graph visualization handles 800+ nodes (neighborhood-based rendering, not full graph)
-> - User browses and spot-checks quality across multiple domains
-> **Observable Deliverable**: Complete knowledge graph with 800+ concepts, clean and browsable
-> **Review Checkpoint**: User reviews and approves before Milestone 4 begins
-> **Depends on**: Milestone 2 review passed
+> - 3D graph visualization handles 800+ nodes without lag (neighborhood-based rendering, not full graph)
+> - Force simulation settles within 5 seconds at 800-node scale; hop slider remains responsive
+> - User browses and spot-checks quality across multiple domains via the 3D graph
+> **Observable Deliverable**: Complete knowledge graph with 800+ concepts — fly through the 3D graph, browse multiple domains, verify performance is acceptable
+> **Review Checkpoint**: User reviews and approves before Milestone 5 begins
+> **Depends on**: Milestone 3 review passed
 > **Status**: To Do
 
 ### TASK-010: Complete Textbook Seeding — All 5 Books
@@ -264,7 +302,7 @@
 
 ---
 
-## Milestone 4: "I can interact with papers and find things fast"
+## Milestone 5: "I can interact with papers and find things fast"
 
 > **Goal**: The user can mark papers as read, add notes, flag papers for review, and search by concept/technique name with instant ranked results.
 > **Acceptance Criteria**:
@@ -273,8 +311,8 @@
 > - Search for "attention" and verify "Attention Mechanism" appears first
 > - Search for "random forest" and verify the technique node appears
 > **Observable Deliverable**: Mark papers, add notes, search and find concepts instantly
-> **Review Checkpoint**: User reviews and approves before Milestone 5 begins
-> **Depends on**: Milestone 3 review passed
+> **Review Checkpoint**: User reviews and approves before Milestone 6 begins
+> **Depends on**: Milestone 4 review passed
 > **Status**: To Do
 
 ### TASK-013: Database Migration and User Interaction Backend
@@ -336,7 +374,7 @@
 
 ---
 
-## Milestone 5: "Concepts are organized and browsable"
+## Milestone 6: "Concepts are organized and browsable"
 
 > **Goal**: Knowledge bank shows concepts grouped into auto-generated categories. User can browse by category and adjust groupings.
 > **Acceptance Criteria**:
@@ -345,8 +383,8 @@
 > - Groupings make intuitive sense (e.g., "Optimization" contains SGD, Adam, learning rate scheduling)
 > - User can reassign a concept to a different category via the dashboard
 > **Observable Deliverable**: Concepts grouped into browsable categories
-> **Review Checkpoint**: User reviews and approves before Milestone 6 begins
-> **Depends on**: Milestone 4 review passed
+> **Review Checkpoint**: User reviews and approves before Milestone 7 begins
+> **Depends on**: Milestone 5 review passed
 > **Status**: To Do
 
 ### TASK-017: TaxonomyGenerator — LLM Clustering
@@ -380,7 +418,7 @@
 
 ---
 
-## Milestone 6: "The digest tells me what shifted"
+## Milestone 7: "The digest tells me what shifted"
 
 > **Goal**: The weekly digest has a "What changed in my graph" section showing new techniques, new problems, trending concepts, and landscape shifts.
 > **Acceptance Criteria**:
@@ -389,8 +427,8 @@
 > - Trending concepts section shows topics with increasing connections over the past 4 weeks
 > - "What Changed" section is meaningful — not just "30 new papers"
 > **Observable Deliverable**: Meaningful digest with landscape shifts
-> **Review Checkpoint**: User reviews and approves before Milestone 7 begins
-> **Depends on**: Milestone 5 review passed
+> **Review Checkpoint**: User reviews and approves before Milestone 8 begins
+> **Depends on**: Milestone 6 review passed
 > **Status**: To Do
 
 ### TASK-019: ChangeDetector — Weekly Changes
@@ -439,7 +477,7 @@
 
 ---
 
-## Milestone 7: "MVP hardening and phase review"
+## Milestone 8: "MVP hardening and phase review"
 
 > **Goal**: Verify all MVP success criteria are met. Full test suite. Documentation. 4-week validation. Commercial signal evaluation. Phase review.
 > **Acceptance Criteria**:
@@ -448,7 +486,7 @@
 > - PHASE-REVIEW.md produced with verdict
 > **Observable Deliverable**: All success criteria evaluated, phase review document with recommendation
 > **Review Checkpoint**: User decides whether to proceed to Beta
-> **Depends on**: Milestone 6 review passed + 4 weeks of pipeline operation
+> **Depends on**: Milestone 7 review passed + 4 weeks of pipeline operation
 > **Status**: To Do
 
 ### TASK-022: Full Test Suite Update
@@ -535,8 +573,10 @@ TASK-001 (Pydantic Models)
   |     |     |                            |
   |     |     +-- TASK-004 (Editing UI)   |
   |     |           |                      |
-  |     |           +-- TASK-005 (Hand-craft Tree-Based) [END OF M1]
-  |     |                 |
+  |     |           +-- TASK-005 (Hand-craft Tree-Based) [END OF M1, seed data Done]
+  |     |
+  |     +-- TASK-004 (Custom Component + Editing) [END OF M2]
+  |     |     |
   |     |                 +-- TASK-009 (LLM Validation Run) [also TASK-007, TASK-008]
   |     |
   |     +-- TASK-008 (Updated ConceptLinker) [also TASK-001]
@@ -557,25 +597,25 @@ TASK-011 (EmbeddingService) — independent, can start anytime
   |
   +-- TASK-012 (Dedup CLI) [also TASK-010]
 
-TASK-009 (LLM Validation Run) → END OF M2
+TASK-009 (LLM Validation Run) → END OF M3
 
-TASK-010 + TASK-012 → END OF M3
+TASK-010 + TASK-012 → END OF M4
 
 TASK-013 → TASK-014 (User Interaction UI)
 TASK-015 → TASK-016 (Dashboard Search) [also TASK-014]
-→ END OF M4
+→ END OF M5
 
 TASK-017 → TASK-018 (Taxonomy CLI + Dashboard)
-→ END OF M5
+→ END OF M6
 
 TASK-019 → TASK-020 (Trend Detection)
 TASK-007 + TASK-008 + TASK-020 → TASK-021 (Pipeline + Digest Update)
-→ END OF M6
+→ END OF M7
 
 TASK-021 → TASK-022 (Test Suite) → TASK-023 (README)
 TASK-021 → TASK-024 (4-Week Validation) → TASK-025 (Commercial Signal)
 TASK-022 + TASK-023 + TASK-025 → TASK-026 (Phase Review)
-→ END OF M7
+→ END OF M8
 ```
 
 ### Parallelism Opportunities

@@ -703,30 +703,42 @@ templates/
 - Concept cards show prerequisites (PREREQUISITE_OF edges) and related techniques (BUILDS_ON edges)
 
 **Graph Visualization Tab (new)**:
-- Interactive node-edge graph rendered via `streamlit-agraph` or `pyvis`
+
+The graph renders as a **3D force-directed graph** using the `3d-force-graph` WebGL library (the same engine behind the Obsidian 3D Graph plugin). This is the primary daily-use interface for exploring the knowledge graph.
+
+Visual requirements:
+- **3D force-directed layout**: Nodes repel/attract in 3D space; clusters form naturally by connectivity
+- **Perspective depth effect**: WebGL perspective projection makes nodes near the camera appear larger and nodes at the periphery appear smaller — the "center magnification" effect the user wants is standard 3D rendering, not a custom algorithm
+- **Distance fog**: `THREE.FogExp2` applied to the scene; nodes fade as they recede from the camera
+- **Fly-through navigation**: `controlType('fly')` — WASD + mouse to navigate. Camera flies into clusters on demand. Orbit controls available as an alternative for users who prefer them
+- **Camera fly-to on node click**: Animated `graph.cameraPosition()` call centering the camera on the clicked node
+- **Hop slider**: HTML range input (1–5 hops). BFS from selected center node. Uses `graph.nodeVisibility()` and `graph.linkVisibility()` to show/hide nodes in real time. Hides all nodes when nothing is selected (shows full graph at depth 1 by default)
+- **Node type filter**: Checkboxes to show/hide Problem, Technique, Concept, Category, Paper nodes
 - Nodes colored by type: Problem (red), Technique (blue), Concept (green), Category (gray), Paper (yellow)
-- Click a node to see its properties and connections
-- Zoom, pan, filter by node type
-- Render neighborhood of selected node (not full graph) for performance
+- Edge labels show relationship type
+- Node labels visible at close camera distances, hidden at distance (declutter)
+- Neighborhood rendering for performance (full graph is visible but only selected node's neighborhood rendered with labels)
 
 **Graph Editing UI (BL-012)**:
 
-The graph visualization tab doubles as the primary editing interface. Editing capabilities are integrated directly into the graph view rather than requiring a separate editing mode.
+The graph visualization tab doubles as the primary editing interface. All editing interactions happen in the Streamlit sidebar, driven by the node/edge selected in the 3D graph.
 
 - **Add node**: Sidebar form with fields for node type (dropdown: Problem/Technique/Concept), label (text input), and type-specific properties (description, innovation_type, etc.). On submit, the node appears in the graph immediately. `edited_by` is set to `"user"`.
-- **Edit node properties**: Click a node to open a properties panel (right sidebar or expandable card below the graph). All fields are editable inline. Changes are saved on blur or explicit "Update" button. `edited_by` is set to `"user"` on save.
+- **Edit node properties**: Click a node in the 3D graph → sidebar shows a properties panel with all fields editable inline. Changes save on explicit "Update" button. `edited_by` is set to `"user"` on save.
 - **Delete node**: Available from the properties panel via a "Delete" button with confirmation dialog ("Delete node '{label}' and all its edges? This cannot be undone."). Cascades to remove all connected edges.
-- **Add edge**: Two-step workflow — (1) click source node (highlighted), (2) click target node, (3) select relationship type from a dropdown filtered to valid types for the source-target node type combination (e.g., PREREQUISITE_OF only appears for Concept->Concept). Edge is created immediately with `edited_by: "user"`.
-- **Delete edge**: Click an edge to select it, then click "Delete" in the edge properties panel. Confirmation dialog for safety. For ALTERNATIVE_TO edges, both directions are deleted.
-- **Visual provenance indicator**: Nodes and edges carry a subtle visual marker (e.g., small icon or border style) distinguishing `edited_by: "user"` (solid border) from `edited_by: "llm"` (dashed border). This is non-intrusive but always visible.
+- **Add edge**: Two-step workflow — (1) click source node (highlighted in graph), (2) click target node, (3) select relationship type from a dropdown filtered to valid types for the source-target node type combination (e.g., PREREQUISITE_OF only appears for Concept->Concept). Edge is created immediately with `edited_by: "user"`.
+- **Delete edge**: Select from edge list in the node properties panel, then click "Delete". Confirmation dialog for safety. For ALTERNATIVE_TO edges, both directions are deleted.
+- **Visual provenance indicator**: Nodes rendered with distinct shapes or color intensities distinguishing `edited_by: "user"` (solid/bright) from `edited_by: "llm"` (slightly faded or with a marker). Implemented via `nodeThreeObject` in 3d-force-graph.
 
-**Technology choice**: `streamlit-agraph` is recommended over `pyvis` because:
-- Native Streamlit component (no iframe embedding)
-- Better click-event handling for node selection
-- Lighter dependency
-- Trade-off: Less customizable than pyvis/D3.js, but sufficient for a personal tool
+**Technology choice**: `3d-force-graph` (MIT, ~75k npm downloads/week) via a two-stage delivery:
 
-**Fallback**: If `streamlit-agraph` proves insufficient (slow rendering, poor interaction), switch to `pyvis` with HTML iframe embedding in Streamlit. The graph data contract (nodes + edges JSON) is the same for both.
+- **Stage 1 — HTML prototype** (`st.components.v1.html`): Self-contained HTML with `3d-force-graph` loaded from CDN. Implements all 5 visual features (3D layout, fog, fly-through, hop slider, node click fly-to). One-way only — node clicks cannot update Python session state. Validated by user before Stage 2.
+- **Stage 2 — Custom Streamlit component** (`react-force-graph-3d`): React+TypeScript component wrapping `react-force-graph-3d`. Adds bidirectional Python communication (`Streamlit.setComponentValue()` on node click). Required for the editing sidebar to respond to graph clicks. Replaces the Stage 1 iframe.
+
+**Why not `streamlit-agraph`**: 2D only, last released January 2023, stale.
+**Why not true hyperbolic H3 layout**: The only open-source H3 implementation (pyh3) is dead since 2015. More importantly, H3 requires a strict tree — this graph has cycles (ALTERNATIVE_TO, BUILDS_ON). The perspective-depth visual effect the user wants is produced by standard WebGL 3D rendering, not hyperbolic geometry. At 800 nodes, 3D force-directed and H3 produce equivalent readability.
+
+**Data contract** (unchanged regardless of rendering library): `get_node_neighborhood(node_id, depth)` returns `{"nodes": [...], "edges": [...]}` with type-based color fields. The rendering layer is the only thing that changes between stages.
 
 ---
 
@@ -739,7 +751,7 @@ The graph visualization tab doubles as the primary editing interface. Editing ca
 | LLM (fallback) | Ollama + `qwen2.5:14b` / `phi4:14b` / cheap API | If 7B can't handle richer extraction | New |
 | Database | SQLite via `sqlite3` | Same schema, new node/edge types | No DDL changes |
 | Embeddings | `sentence-transformers` + `all-MiniLM-L6-v2` | Semantic dedup. ~90 MB model, CPU-only | New |
-| Graph viz | `streamlit-agraph` | Native Streamlit component, click events | New |
+| Graph viz | `3d-force-graph` / `react-force-graph-3d` | 3D WebGL force-directed graph with fog, fly-through, hop slider | New (replaces streamlit-agraph) |
 | Dashboard | Streamlit | Carried from PoC, extended with new tabs | Extended |
 | HTML rendering | Jinja2 | Carried from PoC, updated templates | Extended |
 | arXiv client | `requests` + `xml.etree` | Unchanged | No |
@@ -752,7 +764,10 @@ The graph visualization tab doubles as the primary editing interface. Editing ca
 **New dependencies for MVP**:
 ```
 sentence-transformers==3.4.1   # Semantic embeddings for dedup
-streamlit-agraph==0.0.45       # Graph visualization in Streamlit
+# Graph visualization: 3d-force-graph loaded via CDN for Stage 1 (HTML prototype)
+# Stage 2 (custom Streamlit component) requires Node.js + npm:
+#   npm i react-force-graph-3d three @types/three
+# No pip package — rendering is entirely browser-side WebGL
 ```
 
 ---
@@ -1044,10 +1059,13 @@ The nodes+edges schema continues to map directly to Neo4j. The new node types (`
 
 ### Graph Visualization Upgrade Path
 
-If `streamlit-agraph` proves insufficient for the MVP's visualization needs, the upgrade path is:
-1. **pyvis**: Drop-in replacement within Streamlit (iframe embedding). More customizable, slightly less integrated
-2. **React + Cytoscape.js**: Full frontend replacement. The graph data contract (`get_node_neighborhood` returning nodes + edges JSON) remains the same — only the rendering layer changes
-3. **Neo4j Browser**: If the project migrates to Neo4j, its built-in browser provides excellent graph visualization. The Streamlit dashboard would link to it rather than embedding its own
+The graph uses `3d-force-graph` in two delivery stages:
+1. **Stage 1 (HTML prototype)**: `st.components.v1.html` with CDN-loaded `3d-force-graph`. All visual features work; no Python callbacks.
+2. **Stage 2 (custom Streamlit component)**: `react-force-graph-3d` wrapped as a Streamlit component. Adds bidirectional Python communication required for the editing sidebar.
+
+If Stage 2 proves too complex for Streamlit integration, the fallback is:
+- **Standalone React SPA** served on `localhost:3000` and embedded via `st.components.v1.iframe`. Requires running two processes but avoids Streamlit component build complexity. Appropriate if graph interaction requirements grow significantly beyond editing.
+- **Full React frontend**: Appropriate at Beta phase when Streamlit is replaced entirely. The graph data contract (`get_node_neighborhood` returning nodes + edges JSON) remains the same — only the rendering layer changes.
 
 ### LLM Provider Swap
 
@@ -1239,6 +1257,6 @@ class AnalysisLinks(BaseModel):
 | No database migration framework (Alembic) | Single idempotent migration script is sufficient for one schema transition | Add Alembic if schema changes become frequent |
 | Taxonomy is batch-generated, not incremental | Full re-clustering required when new concepts are added. Acceptable for monthly taxonomy refresh | Add incremental taxonomy (assign new concepts to existing categories) if refresh becomes burdensome |
 | ALTERNATIVE_TO edges are bidirectional (two rows per pair) | Simplifies graph traversal queries at the cost of storage duplication | Accept — storage cost is negligible for the expected edge count |
-| `streamlit-agraph` may not support all desired graph interactions | Adequate for MVP personal use | Switch to pyvis or React+Cytoscape.js if interaction requirements grow |
+| Streamlit custom component requires Node.js build step | One-time setup cost; `dist/` committed to repo so teammates don't need to rebuild | If build infrastructure is too cumbersome, fall back to standalone React SPA + iframe |
 | APILLMClient is a stub, not implemented | Only needed if local models fail quality checks | Implement when/if the fallback is activated |
 | Search is Python post-processing, not SQLite FTS | Fast enough for <1000 nodes | Add SQLite FTS5 virtual table if node count exceeds 2000 or search latency is noticeable |
