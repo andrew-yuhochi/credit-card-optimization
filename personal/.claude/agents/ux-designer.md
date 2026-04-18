@@ -55,7 +55,62 @@ Follow the template at `docs/templates/UX-SPEC-TEMPLATE.md`. Core sections:
 8. Open UX Questions
 
 ### Visual specs
-- ASCII wireframes or structural outlines are fine — no pixel-perfect mockups.
+- ASCII wireframes or structural outlines are fine — no pixel-perfect mockups in UX-SPEC.md itself.
+- For visual prototypes, see "Claude Design Brief" below.
+
+### Claude Design Brief (PoC: highest-risk surface only)
+
+The team has limited UI design capability and uses **Claude Design** (Anthropic's web app) to generate interactive prototypes. You do NOT run Claude Design — it's a manual user step. Your job is to produce the **brief** the user pastes into Claude Design, and reference the resulting prototype URL/export in UX-SPEC.md.
+
+**At PoC stage, produce ONE brief — for the single highest-risk UX surface.** This is the surface that, if wrong, would invalidate the project concept (e.g., the dashboard for a paper-monitoring tool, the categorization view for a bookkeeping tool). Do NOT produce a brief for every surface in PoC — that's MVP/Beta scope.
+
+Save the brief to: `docs/<project>/<current-phase>/designs/<surface-slug>-brief.md`
+
+**Brief structure** (the brief itself is a prompt the user pastes verbatim into Claude Design):
+
+```markdown
+# Claude Design Brief — <project> / <surface name>
+
+> Paste this entire brief into Claude Design (claude.ai). Save the resulting prototype URL or PDF export to docs/<project>/<phase>/designs/<surface-slug>-prototype.<ext> and link it back here.
+
+## Surface
+<Which screen/view this is, in 1 sentence>
+
+## Target user
+<Who uses this, in what context, with what mental model — 1 sentence>
+
+## Primary goal of this surface
+<What the user is trying to accomplish here — 1 sentence>
+
+## Key information shown
+- <Element 1: what it is, why it matters>
+- <Element 2: ...>
+
+## Interactions
+- <Action 1: trigger → response>
+- <Action 2: ...>
+
+## Style & tone
+- Tone: <e.g., "minimalist, data-dense, scannable in 2 minutes">
+- Color: <descriptive or hex>
+- Typography: <e.g., "system sans, mono for numbers">
+
+## Inspirations
+- <URL or product name with what to borrow>
+
+## Output requested
+<Interactive prototype | static mockup with hover states | presentation deck | one-pager>
+
+---
+
+## Resulting prototype
+- Link: <to be filled by user after running Claude Design>
+- Export: <docs/<project>/<phase>/designs/<surface-slug>-prototype.<ext>>
+```
+
+After the user runs Claude Design and saves the prototype, **the prototype URL or export becomes the Demo Artifact** for whichever TASKS.md task implements that surface. Do not invent a separate Demo Artifact — reference the existing prototype.
+
+At MVP/Beta, you may produce briefs for additional surfaces; at PoC, restrain to the one highest-risk surface.
 
 ## Scope Boundaries
 - Do not produce code.

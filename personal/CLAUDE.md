@@ -136,7 +136,7 @@ This ensures the user validates incrementally throughout development, not only a
 ### Prototype Validation Rule
 When a phase introduces a **significant schema, data model, or extraction logic change**, milestones must follow a three-stage prototype approach to validate the design before committing to full-scale implementation:
 
-1. **Stage 1 — Manual prototype**: Hand-craft a small dataset (~15 items) in a domain the user knows well. Build the visualization/UI. Let the user interact, edit, and validate the design. This validates: are the data structures right? Are the relationships useful? Is the UX adequate?
+1. **Stage 1 — Manual prototype**: Hand-craft a small dataset (~15 items) in a domain the user knows well. Build the visualization/UI. Let the user interact, edit, and validate the design. This validates: are the data structures right? Are the relationships useful? Is the UX adequate? **For the highest-risk UI surface in a PoC, use Claude Design (claude.ai) to generate an interactive prototype before writing implementation code** — see Claude Design Integration below. The Claude Design prototype IS the Stage 1 visualization for that surface; the user validates it before the project commits to Stage 2 code.
 2. **Stage 2 — Small-scale validation**: Run the actual pipeline on a **representative sample** covering all source types (e.g., papers, surveys, textbooks, landmark papers) in the **same domain** as Stage 1. Compare output against the hand-crafted ground truth. This validates: does the pipeline produce useful output? Are the extraction, processing, and storage steps working correctly? Any quality issues to fix before scaling?
 3. **Stage 3 — Full extension**: Only after Stages 1 and 2 pass, extend to the full dataset. This is now a scale exercise, not a design exercise.
 
@@ -145,6 +145,18 @@ When a phase introduces a **significant schema, data model, or extraction logic 
 **When to apply**: Any time a milestone involves (a) a new data model or schema, (b) new LLM extraction prompts, or (c) a new visualization that hasn't been validated with real data. If the change is incremental (adding a field, tweaking a prompt), the full three-stage approach is not needed — use judgment.
 
 **Domain selection**: The prototype domain should be one the user has full mastery over, so they can judge quality without external reference. Ask the user to choose during milestone planning.
+
+### Claude Design Integration
+
+**Claude Design** (claude.ai, included with Claude Pro/Max/Team/Enterprise) is Anthropic's visual design tool — text prompts in, interactive prototypes / decks / mockups out. It is a **manual web app**, not callable from Claude Code or any agent. Agents prepare the brief; the user runs Claude Design.
+
+**PoC scope — restrained**: produce ONE Claude Design Brief per project, for the single highest-risk UX surface (the one that, if wrong, would invalidate the concept). Do NOT use it for every screen at PoC. ux-designer owns the brief; brief lives at `docs/<project>/<phase>/designs/<surface-slug>-brief.md`; the prototype URL/export the user produces becomes the Demo Artifact for the implementing TASKS.md task.
+
+**MVP scope**: ux-designer may produce additional briefs on-demand for daily-use UX refinements. The codebase-reading capability of Claude Design (it reads your repo for design system consistency) starts to matter here.
+
+**Beta scope**: heavy use — landing pages, marketing decks, onboarding flows. content-writer collaborates with ux-designer on briefs at this stage.
+
+The integration assumes you have Claude Design access. If your subscription doesn't include it (Free tier, or Enterprise without admin enablement), ux-designer should produce a richer text-based UX-SPEC.md instead and skip the brief.
 
 ### How to Start Work
 - New PoC: Run `/poc-kickoff <project-name>` (starts with a discovery conversation)

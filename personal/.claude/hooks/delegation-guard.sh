@@ -54,6 +54,11 @@ elif [[ "$FILE_PATH" =~ /docs/[^/]+/(poc|mvp|beta)/ALIGNMENT-LOG\.md$ ]]; then
   OWNER="business-analyst"
   REASON="ALIGNMENT-LOG.md is business-analyst-owned"
 
+# --- Claude Design briefs — ux-designer (.md only; prototype exports stay unguarded) ---
+elif [[ "$FILE_PATH" =~ /docs/[^/]+/(poc|mvp|beta)/designs/.*\.md$ ]]; then
+  OWNER="ux-designer"
+  REASON="Claude Design briefs under designs/ are ux-designer-owned"
+
 else
   # Path is not guarded — allow.
   exit 0
