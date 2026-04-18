@@ -199,6 +199,14 @@ These rules apply to every project in this workspace without exception:
    ```
    placed directly below the project description at the top of the file. Add this when creating or first updating any README. Never omit it. **Before every task-completion push, verify the line is still present** — if it is missing, restore it in the same commit that closes the task.
 
+5. **Portfolio-infrastructure files are never pushed to GitHub**: The following are local-only — they may be committed locally for versioning, but they must NOT be included in any `git push` or pull request:
+   - `CLAUDE.md` (root Project Constitution)
+   - `.claude/**` (agents, commands, hooks, skills, settings, agent-memory)
+   - `docs/templates/**`
+   - `docs/STRUCTURE.md`
+
+   These are personal workflow configuration, not project deliverables. Rules 2–3 above (repo creation, push-after-task) apply only to files under `projects/<project>/**` and `docs/<project>/<phase>/**`. **Never mix infra and project files in the same commit.** If you discover a commit that mixes them, split it locally before pushing — or do not push that commit. When in doubt, ask the user.
+
 ### Task Completion Checklist — MANDATORY
 Every time a task is marked Done, execute these steps in order. Do not skip, reorder, or defer any step.
 
@@ -207,7 +215,7 @@ Every time a task is marked Done, execute these steps in order. Do not skip, reo
 3. **Stage the task's code + the TASKS.md update** (specific files, not `git add -A`).
 4. **Commit** with a Conventional Commits message scoped to the task id, e.g. `feat(paper-monitoring): complete TASK-011 weekly pipeline ingestion`.
 5. **Ensure remote exists**: run `git remote -v`. If empty, this is the first task — create the GitHub repo per GitHub Rule #2 before continuing.
-6. **Push** to `origin main` (or the task branch, if one exists). A task is not Done until the push succeeds.
+6. **Push** to `origin main` (or the task branch, if one exists). A task is not Done until the push succeeds. Per GitHub Rule #5, only project files (`projects/<project>/**`, `docs/<project>/<phase>/**`) get pushed; portfolio-infra files (CLAUDE.md, `.claude/**`, `docs/templates/**`, `docs/STRUCTURE.md`) stay local — never include them in a task-completion push.
 7. **Report back to the user**: one line confirming the commit SHA and the GitHub URL.
 
 If any step fails (hook failure, push rejected, README line missing), stop and fix the root cause before retrying. Never use `--no-verify` or force-push to bypass a failure.
