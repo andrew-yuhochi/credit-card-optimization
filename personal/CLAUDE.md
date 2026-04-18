@@ -150,7 +150,7 @@ When a phase introduces a **significant schema, data model, or extraction logic 
 - New PoC: Run `/poc-kickoff <project-name>` (starts with a discovery conversation)
 - Phase transition: Run `/phase-transition <mvp|beta>` (reads previous phase docs, plans next phase)
 - New feature in current phase: Discuss with the user first, update docs, then run `/implement <task-id>`
-- Bug fix: Can proceed directly but must update TASKS.md afterward
+- Bug fix: Spawn the data-pipeline subagent directly with the bug description (no TASK-ID required), then test-validator for regression coverage. Log the fix in TASKS.md afterward as a `BUG-XXX` entry. Main-session edits to `projects/*/src/**` are blocked by the delegation-guard hook regardless — fixes must go through the subagent.
 
 ## Coding Standards
 
@@ -245,8 +245,16 @@ The main session's token footprint is dominated by file reads and command output
 ### Re-reading the same file
 Before reading a file a second time in the same session, pause: do you already have what you need in context, or should you delegate to a subagent that reads it in isolation? Repeated re-reads of the same file are one of the largest sources of context bloat in this workspace.
 
+### Hard thresholds for delegating reads
+These are not soft suggestions — when any threshold is hit, stop and spawn a subagent for the rest of the investigation. The subagent's tool results stay in its own context; only the summary returns to main session.
+
+- **3-file rule**: Before performing the 3rd `Read` in a single turn, stop and delegate. Three small reads is the ceiling for main-session investigation.
+- **Large-file rule**: Before reading any file longer than ~500 lines, ask: do I need the whole file, or can I `Grep` / `Read offset+limit` for the specific section? If you genuinely need the whole file, spawn a subagent.
+- **Repeat-read rule**: Before the 2nd Read of the same file in a session, stop and delegate.
+- **Multi-file investigation**: Any task framed as "look across the codebase / find all places that…" goes to the Explore subagent immediately, not main session.
+
 ### Delegation for heavy reads
-If a task requires reading several large files to produce a small answer, spawn a subagent with the Agent tool. The subagent's tool results stay in its own context; only its summary returns to the main session. This is the single biggest lever for keeping token usage bounded.
+If a task requires reading several large files to produce a small answer, spawn a subagent with the Agent tool. This is the single biggest lever for keeping token usage bounded.
 
 ## Agent Coordination Rules
 
@@ -267,7 +275,8 @@ Agents inherit all rules from this file (coding standards, security rules, workf
 | test-validator | Unit + integration | + regression, reliability | + E2E, load, accessibility |
 | content-writer | README, code docs | Usage guide, changelog | User docs, marketing, API docs |
 | devops-engineer | — | Scheduling, automation, basic deployment | CI/CD, Docker, cloud, monitoring |
-| security-reviewer | — | — | OWASP, auth audit, penetration testing |
+
+(A dedicated `security-reviewer` agent will be added at Beta phase. Until then, security review is part of architect's scope at every gate.)
 
 **PoC research phase runs in two stages:**
 1. **Stage 1 — Market research first:** `market-analyst` runs alone (→ `MARKET-ANALYSIS.md`). User adjusts objectives before further research.
