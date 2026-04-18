@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 23 |
+| Done | 24 |
 | In Progress | 0 |
-| Not Started | 4 |
+| Not Started | 3 |
 | Blocked | 0 |
 
 ---
@@ -441,7 +441,7 @@
 ---
 
 ### TASK-024: Settings Page — Budget Envelopes
-- **Status**: Not started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl)
 - **Complexity**: Low
 - **Depends on**: TASK-017
@@ -534,6 +534,7 @@
 - **TASK-021** — Transaction Detail Drawer — Done 2026-04-17
 - **TASK-022** — Save Review Session and Classifier Retrain — Done 2026-04-17
 - **TASK-023** — Overview Page — Monthly Snapshot and Envelope Grid — Done 2026-04-17
+- **TASK-024** — Settings Page — Budget Envelopes — Done 2026-04-17
 
 ---
 
