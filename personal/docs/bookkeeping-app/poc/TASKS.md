@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 24 |
+| Done | 25 |
 | In Progress | 0 |
-| Not Started | 3 |
+| Not Started | 2 |
 | Blocked | 0 |
 
 ---
@@ -459,7 +459,7 @@
 ## Sprint 7: Quality, Testing, and Polish
 
 ### TASK-025: Pytest Test Suite — Core Logic Coverage
-- **Status**: Not started
+- **Status**: Done (2026-04-17)
 - **Agent**: test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-009, TASK-007, TASK-008
@@ -535,6 +535,7 @@
 - **TASK-022** — Save Review Session and Classifier Retrain — Done 2026-04-17
 - **TASK-023** — Overview Page — Monthly Snapshot and Envelope Grid — Done 2026-04-17
 - **TASK-024** — Settings Page — Budget Envelopes — Done 2026-04-17
+- **TASK-025** — Pytest Test Suite — Core Logic Coverage — Done 2026-04-17
 
 ---
 
