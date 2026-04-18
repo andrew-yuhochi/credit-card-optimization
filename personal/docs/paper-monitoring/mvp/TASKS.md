@@ -10,28 +10,30 @@
 |--------|-------|
 | Done | 4 |
 | In Progress | 0 |
-| To Do | 24 |
+| To Do | 22 |
 | Blocked | 0 |
 
-> **M1 Review note (2026-04-17)**: User reviewed Milestone 1 and required 3D graph visualization (replacing `streamlit-agraph`). Original M1 split into M1 (HTML prototype, visual validation) and M2 (custom component + editing). All subsequent milestones renumbered M3–M8. TASK-003 and TASK-004 revised for 3D approach. TASK-001, TASK-002, TASK-005 remain Done.
+> **M1 Review note (2026-04-17)**: User reviewed Milestone 1 and required 3D graph visualization (replacing `streamlit-agraph`). Original M1 split into M1 (HTML prototype, visual validation) and M2 (custom component + editing). All subsequent milestones renumbered M3–M8. TASK-003 completed as a 3D HTML prototype. **M1 Review outcome (2026-04-17)**: 3D approach tested as the TASK-003 HTML prototype. Decision: switch to `st-link-analysis` (Cytoscape.js, 2D) — 1-2 dev-days of Python configuration vs. 8-15 dev-days for production-quality 3D UX (camera jumps, label LOD tuning, bidirectional bridge). TASK-004 revised accordingly. TASK-001, TASK-002, TASK-003, TASK-005 Done.
 
 ---
 
-## Milestone 1: "I can explore the tree-based knowledge graph in 3D"
+## Milestone 1: "I can explore the tree-based knowledge graph in an interactive 2D graph"
 
-> **Goal**: A 3D force-directed graph of ~17 hand-crafted tree-based model concepts renders in the Streamlit dashboard. The user validates the 3D visual experience — fog, fly-through, hop slider, perspective depth — before any editing or LLM work begins. The seed data (TASK-005) is already in place; this milestone is purely a visual validation gate.
+> **Goal**: A 2D force-directed graph of ~17 hand-crafted tree-based model concepts renders in the Streamlit dashboard. The user validates the visual experience — directed edges, color-coded relationships, always-visible labels, hop-filtered neighborhoods — before any editing or LLM work begins. The seed data (TASK-005) is already in place; this milestone is the visual validation gate.
 > **Acceptance Criteria**:
-> - 3D force-directed graph renders all ~17 seed nodes with all 7 relationship types
-> - Nodes appear larger near camera, smaller at periphery (WebGL perspective + force clustering)
-> - Distance fog fades nodes as they recede from camera
+> - 2D force-directed graph renders all ~17 seed nodes with all 7 relationship types
+> - Node colors by type (Problem=red, Technique=blue, Concept=green, Category=gray, Paper=yellow)
+> - Directed arrows on every edge (arrowhead at target)
+> - Edges colored and captioned by relationship type
+> - Node labels always visible on each node
 > - Hop slider (1–5) filters visible nodes by BFS distance from a selected center node
-> - Fly-through camera navigation (WASD + mouse) works
-> - Camera animates to a clicked node
+> - Camera/zoom centers on a clicked node
+> - Neighbor highlight on click (selected node's neighbors emphasized, rest dimmed)
 > - Node type filter (checkboxes) shows/hides each of the 5 node types
 > - Relationships are visually correct and useful (user validates from domain expertise)
-> **Observable Deliverable**: Open the Streamlit Graph tab → fly through a 3D cluster of tree-based model nodes with fog and hop filtering
-> **Review Checkpoint**: User approves the 3D visual experience before Milestone 2 begins
-> **Status**: In Progress (TASK-001, TASK-002, TASK-005 Done; TASK-003 To Do)
+> **Observable Deliverable**: Open the Streamlit Graph tab → explore the ~17-node tree-based graph, click through nodes to see neighborhoods, filter by hop depth and node type
+> **Review Checkpoint**: User approves the 2D visual experience before Milestone 2 begins (2026-04-17: 3D approach tested as TASK-003 HTML prototype. Decision: switch to `st-link-analysis` (Cytoscape.js) — 1-2 dev-days vs. 8-15 dev-days for production-quality 3D. TASK-004 revised accordingly.)
+> **Status**: In Progress (TASK-001, TASK-002, TASK-003, TASK-005 Done; M1 validation gate closes with TASK-004 delivery)
 
 ### TASK-001: Pydantic Models for Concept-First Schema
 - **Status**: Done (2026-04-17)
@@ -91,46 +93,51 @@
 
 ---
 
-## Milestone 2: "I can edit nodes and edges through the 3D graph"
+## Milestone 2: "I can edit nodes and edges through the 2D interactive graph"
 
-> **Goal**: The HTML prototype from M1 is converted to a proper Streamlit custom component with bidirectional Python communication. The user can click a node in the 3D graph, see its properties in the sidebar, and edit them inline. Full CRUD on nodes and edges. This completes the hand-crafted prototype validation cycle.
+> **Goal**: `st-link-analysis` integrated into `app.py` with bidirectional Python communication via the component's click callback. The user can click a node in the graph, see its properties in the sidebar, and edit them inline. Full CRUD on nodes and edges. This completes the hand-crafted prototype validation cycle.
 > **Acceptance Criteria**:
-> - Clicking a node in the 3D graph updates Python session state (custom component → `st.session_state`)
+> - Clicking a node in the graph returns the node ID to Python and writes it to `st.session_state.selected_node_id`
 > - Sidebar shows editable properties panel for the clicked node; "Update" saves immediately
-> - User can add a new node via sidebar form — appears in graph instantly
+> - User can add a new node via sidebar form — appears in graph after re-render
 > - User can delete a node with confirmation — cascades to remove all connected edges
-> - User can add an edge (two-click source → target + relationship type dropdown)
+> - User can add an edge (click source node + target dropdown + relationship type dropdown)
 > - User can delete an edge from the node properties panel
 > - All user edits set `edited_by: "user"` in node/edge properties
-> - User-edited nodes/edges are visually distinct from LLM-edited ones (provenance indicator)
-> - All 5 visual features from M1 preserved (fog, fly-through, hop slider, camera fly-to, type filter)
-> **Observable Deliverable**: Click any node in the 3D graph → sidebar shows editable properties → edit label or description → save. Add and delete a node. Add and delete an edge.
+> - User-edited nodes/edges are visually distinct from LLM-edited ones (provenance indicator via `NodeStyle`)
+> - All visual features from M1 preserved: 2D force-directed layout, directed arrows, edge colors/captions, always-visible labels, node colors by type, hop slider, node type filter, neighbor highlight
+> **Observable Deliverable**: Click any node in the graph → sidebar shows editable properties → edit label or description → save. Add and delete a node. Add and delete an edge.
 > **Review Checkpoint**: User approves editing UX before Milestone 3 begins
 > **Depends on**: Milestone 1 review passed
 > **Status**: To Do
 
-### TASK-004: 3D Graph — Custom Streamlit Component + Editing UI
-- **Status**: To Do (revised 2026-04-17 — converting HTML prototype to full custom component)
+### TASK-004: Graph Visualization — st-link-analysis Integration + Editing UI
+- **Status**: To Do
 - **Agent**: data-pipeline (impl)
-- **Complexity**: Large
-- **Depends on**: TASK-003 (HTML prototype reviewed and approved by user)
-- **Context**: TDD Section 2.5.2. Stage 2 of the 3D graph delivery. Convert the TASK-003 HTML prototype to a proper Streamlit custom component (`react-force-graph-3d`) with bidirectional Python communication. Required because editing operations (click node → sidebar shows editable properties → save back to Python) cannot work in a one-way HTML iframe. BL-012 promoted to MVP scope. All edits set `edited_by: "user"`. User edits preserved during LLM re-classification in later milestones.
-- **Description**: Convert the HTML prototype to a custom Streamlit component and add full graph editing capabilities. Node clicks drive the editing sidebar via Python session state.
+- **Complexity**: Medium
+- **Depends on**: TASK-003 (visual prototype validated; decision to use `st-link-analysis` confirmed)
+- **Context**: TDD Section 2.5.2. M1 review outcome: 3D HTML prototype (TASK-003) validated the node/edge data contract but found 3D navigation disorienting in daily use (camera jumps on click, labels unreadable at distance, fly-through requires muscle memory). Switch to `st-link-analysis` (Cytoscape.js) — covers all visual requirements via Python config, pip-installable, no npm/React build step. BFS hop-slider implemented in Python (~20 lines). Editing sidebar driven by the component's click callback. BL-012 promoted to MVP scope. All user edits set `edited_by: "user"`. User edits preserved during LLM re-classification in later milestones.
+- **Description**: Implement the graph visualization tab using `st-link-analysis` in `app.py` and add full graph editing capabilities. Node clicks drive the editing sidebar via Python session state.
 - **Acceptance Criteria**:
-  - [ ] Streamlit custom component scaffolded at `src/components/graph_3d/` (Python wrapper + React frontend)
-  - [ ] `react-force-graph-3d` npm package used in the React frontend (v1.29.1 or latest)
-  - [ ] All 5 visual features from TASK-003 preserved: fog, fly-through, hop slider, camera fly-to, node type filter
-  - [ ] **Bidirectional communication**: clicking a node in the 3D graph sets `st.session_state.selected_node_id` in Python
-  - [ ] **Edit node properties**: clicking a node populates a sidebar properties panel. All fields editable inline. "Update" button calls `update_node_properties()`. `edited_by` set to `"user"`.
+  - [ ] `pip install st-link-analysis` added to `requirements.txt` (pinned to `==0.4.0`)
+  - [ ] `src/dashboard/graph_3d.py` bypassed or replaced; rendering done via a direct `st_link_analysis()` call in `app.py` (graph_3d.py kept as legacy reference, not imported)
+  - [ ] All ~17 seed nodes render with correct node colors by type via `NodeStyle`: Problem=red, Technique=blue, Concept=green, Category=gray, Paper=yellow
+  - [ ] Edges rendered with directional arrows (`directed=True`)
+  - [ ] Edges colored and captioned by `relationship_type` via `EdgeStyle` (ADDRESSES, BUILDS_ON, INTRODUCES, BASELINE_OF, ALTERNATIVE_TO, BELONGS_TO, PREREQUISITE_OF — each with a distinct color and caption)
+  - [ ] Node labels always visible (`NodeStyle(caption="label", ...)`)
+  - [ ] **Click callback**: clicking a node in the graph returns the node ID to Python via the component's return value, written to `st.session_state.selected_node_id`
+  - [ ] **Neighbor highlight on click**: built-in behavior verified — clicking a node highlights its neighbors and dims the rest
+  - [ ] **Hop slider (1–5)**: Python-side BFS re-render — slider updates session state, `GraphStore.get_node_neighborhood(selected_node_id, depth)` returns the filtered subgraph, the component is re-called. Full graph shown when no node is selected
+  - [ ] **Node type filter (checkboxes)**: Python-side filter — same session-state pattern as the hop slider, re-renders the graph with the filtered node list
+  - [ ] **Edit node properties**: clicking a node populates a sidebar properties panel. All fields editable inline. "Update" button calls `update_node_properties()`. `edited_by` set to `"user"` on save.
   - [ ] **Delete node**: "Delete" button in properties panel with confirmation dialog. Cascades to remove all connected edges.
-  - [ ] **Add node**: Sidebar form (type dropdown, label, type-specific properties). Node appears in 3D graph immediately after creation.
-  - [ ] **Add edge**: Two-step UI — click source node (highlighted), click target node, select relationship type from filtered dropdown, confirm. Edge appears immediately.
+  - [ ] **Add node**: Sidebar form (type dropdown, label, type-specific properties). Node appears in the graph after Python re-render.
+  - [ ] **Add edge**: Source node selected by graph click; target node selected from a sidebar dropdown; relationship type dropdown filtered to valid source-target node type pairs. Submit creates the edge immediately with `edited_by: "user"`.
   - [ ] **Delete edge**: Edge list shown in node properties panel. Delete button per edge with confirmation.
-  - [ ] **Visual provenance**: `edited_by: "user"` nodes rendered brighter/solid; `edited_by: "llm"` nodes slightly faded or with a marker. Implemented via `nodeThreeObject` or `nodeColor` callback.
+  - [ ] **Visual provenance**: `edited_by: "user"` nodes visually distinct from `edited_by: "llm"` nodes — implemented via distinct `NodeStyle` entries (e.g., thicker border or higher opacity on user-edited nodes)
   - [ ] All user edits logged via Python `logging` module for auditability
-  - [ ] Built `dist/` folder committed to repo (users do not need to run `npm build`)
-  - [ ] `node` 18+ required for initial build; documented in README
-- **Notes**: If Streamlit custom component build infrastructure proves too cumbersome, fall back to: standalone React SPA on `localhost:3000` embedded via `st.components.v1.iframe`. Same visual and editing requirements apply — only the Streamlit integration method changes.
+  - [ ] No npm build step; no `dist/` folder committed; no React component scaffold
+- **Notes**: `st-link-analysis` is configured entirely in Python. If ever the graph exceeds ~2000 visible nodes and interaction feels slow, consider moving hop-BFS client-side via JavaScript injection or migrating to a WebGL-based library (Sigma.js). The data contract (`get_node_neighborhood` returning nodes + edges JSON) is library-agnostic — only the rendering call site would change.
 
 ### TASK-005: Hand-Craft Tree-Based Models Graph
 - **Status**: Done (2026-04-17)
@@ -512,7 +519,7 @@
 - **Description**: Update project documentation for the MVP.
 - **Acceptance Criteria**:
   - [ ] README reflects MVP features and architecture
-  - [ ] Setup instructions include new dependencies (sentence-transformers, streamlit-agraph)
+  - [ ] Setup instructions include new dependencies (sentence-transformers, st-link-analysis)
   - [ ] CLI commands documented: `dedup`, `taxonomy`
   - [ ] "Built with Claude Code" line present
   - [ ] TASKS.md fully updated with completion dates
