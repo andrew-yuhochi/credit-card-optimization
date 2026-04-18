@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 22 |
+| Done | 23 |
 | In Progress | 0 |
-| Not Started | 5 |
+| Not Started | 4 |
 | Blocked | 0 |
 
 ---
@@ -423,7 +423,7 @@
 ## Sprint 6: Overview and Analytics
 
 ### TASK-023: Overview Page — Monthly Snapshot and Envelope Grid
-- **Status**: Not started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl)
 - **Complexity**: Medium
 - **Depends on**: TASK-017, TASK-022
@@ -533,6 +533,7 @@
 - **TASK-020** — Needs-Review Queue Page — Done 2026-04-17
 - **TASK-021** — Transaction Detail Drawer — Done 2026-04-17
 - **TASK-022** — Save Review Session and Classifier Retrain — Done 2026-04-17
+- **TASK-023** — Overview Page — Monthly Snapshot and Envelope Grid — Done 2026-04-17
 
 ---
 
