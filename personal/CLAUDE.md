@@ -203,7 +203,7 @@ These rules apply to every project in this workspace without exception:
 Every time a task is marked Done, execute these steps in order. Do not skip, reorder, or defer any step.
 
 1. **Update `docs/<project>/<current-phase>/TASKS.md`**: change the task's `**Status**` to `Done (YYYY-MM-DD)` using today's date.
-2. **Verify README compliance**: confirm `projects/<project>/README.md` contains the `> Built with [Claude Code](https://claude.ai/code)` line directly below the top-level description. If missing, add it.
+2. **Verify README compliance**: confirm `projects/<project>/README.md` contains the `> Built with [Claude Code](https://claude.ai/code)` line directly below the top-level description. If missing, delegate to content-writer to restore it — main session edits to README.md are blocked by the delegation-guard hook.
 3. **Stage the task's code + the TASKS.md update** (specific files, not `git add -A`).
 4. **Commit** with a Conventional Commits message scoped to the task id, e.g. `feat(paper-monitoring): complete TASK-011 weekly pipeline ingestion`.
 5. **Ensure remote exists**: run `git remote -v`. If empty, this is the first task — create the GitHub repo per GitHub Rule #2 before continuing.
@@ -218,6 +218,27 @@ If any step fails (hook failure, push rejected, README line missing), stop and f
 - Use `.env.example` with placeholder values checked into git
 - Validate and sanitize all external API responses
 - Log warnings for unexpected data formats, don't silently fail
+
+## Tool Usage Discipline — MANDATORY
+
+The main session's token footprint is dominated by file reads and command output that stay baked into the cached prefix for the rest of the conversation. Follow these rules to keep context lean.
+
+### File reads and searches
+- **Read files with the Read tool**, not `cat`/`head`/`tail`/`less` via Bash. Read paginates and truncates; Bash returns the full buffer into permanent context.
+- **Search file contents with the Grep tool**, not `grep`/`rg` via Bash. Grep is tuned for truncation and structured output.
+- **Find files with the Glob tool**, not `find`/`ls` via Bash.
+- **Bash is for shell-only operations** — git, package managers, running scripts, and anything the dedicated tools cannot do.
+
+### When you must use Bash
+- Prefer `head -N` / `tail -N` over full-file dumps.
+- Run `wc -l` first if you are unsure how large the output will be.
+- For verbose commands, redirect to a temp file (`cmd >/tmp/log.txt 2>&1`) and then Read a slice — do not stream 20K+ lines into context.
+
+### Re-reading the same file
+Before reading a file a second time in the same session, pause: do you already have what you need in context, or should you delegate to a subagent that reads it in isolation? Repeated re-reads of the same file are one of the largest sources of context bloat in this workspace.
+
+### Delegation for heavy reads
+If a task requires reading several large files to produce a small answer, spawn a subagent with the Agent tool. The subagent's tool results stay in its own context; only its summary returns to the main session. This is the single biggest lever for keeping token usage bounded.
 
 ## Agent Coordination Rules
 
