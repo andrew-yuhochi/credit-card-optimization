@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 19 |
+| Done | 22 |
 | In Progress | 0 |
-| Not Started | 8 |
+| Not Started | 5 |
 | Blocked | 0 |
 
 ---
@@ -402,7 +402,7 @@
 ---
 
 ### TASK-022: Save Review Session and Classifier Retrain
-- **Status**: Not started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline (impl)
 - **Complexity**: Medium
 - **Depends on**: TASK-020, TASK-021, TASK-007
@@ -530,6 +530,9 @@
 - **TASK-018** — Inline Responsibility Toggle (HTMX Partial) — Done 2026-04-16
 - **TASK-016** — SIM HK Parser — Done 2026-04-16
 - **TASK-019** — Drag-to-Recategorize (Sortable.js + HTMX) — Done 2026-04-16
+- **TASK-020** — Needs-Review Queue Page — Done 2026-04-17
+- **TASK-021** — Transaction Detail Drawer — Done 2026-04-17
+- **TASK-022** — Save Review Session and Classifier Retrain — Done 2026-04-17
 
 ---
 
