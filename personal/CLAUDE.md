@@ -150,6 +150,7 @@ When a phase introduces a **significant schema, data model, or extraction logic 
 - New PoC: Run `/poc-kickoff <project-name>` (starts with a discovery conversation)
 - Phase transition: Run `/phase-transition <mvp|beta>` (reads previous phase docs, plans next phase)
 - New feature in current phase: Discuss with the user first, update docs, then run `/implement <task-id>`
+- Alignment check: Run `/alignment-check <project> "<proposal>"` whenever you propose adding a requirement (to BACKLOG.md or current milestone) or are unsure whether a change fits the project's goals. You can also just ask "is this aligned with our goal?" in conversation — main session will auto-route to business-analyst (see Natural-language alignment trigger in Agent Coordination Rules).
 - Bug fix: Spawn the data-pipeline subagent directly with the bug description (no TASK-ID required), then test-validator for regression coverage. Log the fix in TASKS.md afterward as a `BUG-XXX` entry. Main-session edits to `projects/*/src/**` are blocked by the delegation-guard hook regardless — fixes must go through the subagent.
 
 ## Coding Standards
@@ -271,6 +272,7 @@ Agents inherit all rules from this file (coding standards, security rules, workf
 | market-analyst | Full analysis | — | Re-invoked |
 | ux-designer | Full UX spec | On-demand (UX refinement) | Full UX generalization |
 | architect | Full design + gate reviews | Update docs + gate reviews | Deployment arch + security |
+| business-analyst | PRD alignment (Mode A) + milestone alignment (Mode B) + on-demand | Same + MVP-GOALS alignment (Mode C) | Same + commercial revalidation against new MARKET-ANALYSIS |
 | data-pipeline | Build engine | Harden + new features | Backend API endpoints |
 | test-validator | Unit + integration | + regression, reliability | + E2E, load, accessibility |
 | content-writer | README, code docs | Usage guide, changelog | User docs, marketing, API docs |
@@ -290,6 +292,15 @@ Agents inherit all rules from this file (coding standards, security rules, workf
 - **devops-engineer**: Scheduling, deployment, automation, monitoring (MVP onward)
 - **test-validator**: Testing and code review; does not modify implementation code
 - **content-writer**: README, documentation, and user-facing content
+
+### Natural-language alignment trigger
+When the user asks a question framed as alignment — phrases like "is this aligned with our goal?", "does this fit our scope?", "should we add this?", "are we drifting?", or any version of "should we work on X" where X isn't already in TASKS.md — the main session must dispatch to **business-analyst** (Mode B for PoC, Mode C for MVP/Beta) BEFORE answering. Do NOT form an opinion on alignment in the main session. The BA verdict — with PRD anchors and an entry in `ALIGNMENT-LOG.md` — is what the user expects to see, not your guess.
+
+This rule fires in two places:
+1. Explicitly when the user runs `/alignment-check`.
+2. Implicitly when an alignment-style question shows up in conversation. Detect the intent and route.
+
+If a proposal is clearly out of alignment (violates PRD §6 Scope OUT, etc.), main session may say so but must still cite the BA verdict — main-session intuition is not a substitute for a logged BA decision.
 
 ### Team Composition Check
 At the start of every PoC kickoff, briefly review `.claude/agents/` and ask whether the current team covers every angle this project needs. If a genuinely new angle is missing (regulatory review, a specialist domain, a new kind of data work), flag it to the user and ask whether to create a new agent before proceeding. Do NOT invent agents silently. Most of the time the standard team is sufficient — this is a 30-second sanity check, not a bureaucratic gate.

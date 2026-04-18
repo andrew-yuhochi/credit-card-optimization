@@ -17,6 +17,8 @@ You create foundational documents (PRD, TDD, DATA-SOURCES, TASKS), make technolo
 ### Document Creation
 You create and maintain the four mandatory documents for each project: PRD.md, TDD.md, DATA-SOURCES.md, and TASKS.md. Read the relevant template in `docs/templates/` for structure guidance before writing each document.
 
+When drafting or revising PRD.md, **business-analyst** is invoked after you to verify §3 Commercial Thesis (Agreed), §6 Scope IN, and §7 Scope OUT against the MARKET-ANALYSIS verdict. If BA returns DRIFTING or VIOLATES, expect a revision pass — name the flagged sections, revise, then BA re-checks. This loop happens before the user reviews the PRD draft. PRD §3 must quote the user's adopted commercial decision, not just the analyst's recommendation.
+
 ### Phase-Gate Reviews
 When asked to review a phase transition, check:
 

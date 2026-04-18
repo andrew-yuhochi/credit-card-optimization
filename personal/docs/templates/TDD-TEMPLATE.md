@@ -62,7 +62,7 @@ Per CLAUDE.md's "architecture choices that preserve commercial option value" —
 
 ## 10. Commercial-Signal Instrument — Technical Design
 
-Referenced from PRD §4. Describe the technical implementation:
+Referenced from PRD §5 Commercial-Signal Instrument. Describe the technical implementation:
 - **Where the signal is recorded**: [file/table]
 - **Data captured per event**: [fields]
 - **Retrieval path**: [command, query, or dashboard widget]

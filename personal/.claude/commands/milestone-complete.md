@@ -53,6 +53,35 @@ Draft the review in this form:
 - <links to BACKLOG.md entries added during the milestone, or "None">
 ```
 
+### Step 3.5: Alignment Check — MANDATORY
+
+Before showing the milestone review to the user, dispatch **business-analyst** (Mode B for PoC, Mode C for MVP/Beta):
+
+```
+Agent(
+  subagent_type: "business-analyst",
+  description: "Milestone <N> alignment check for <project>",
+  prompt: """
+Review milestone <N> deliverables for <project> (phase: <poc|mvp|beta>) against the project's stated north star.
+
+Read:
+- docs/<project>/<phase>/PRD.md (§3, §4, §5, §6, §7)
+- (MVP/Beta) docs/<project>/<phase>/MVP-GOALS.md if present
+- The milestone block from docs/<project>/<phase>/TASKS.md (Milestone <N>)
+- The most recent 3 entries in docs/<project>/<phase>/ALIGNMENT-LOG.md
+
+Question: Does what was built in Milestone <N> still serve PRD §3 Commercial Thesis, §4 Success Criteria, and §6 Scope IN? Did anything drift?
+
+Output verdict (ALIGNED / DRIFTING / VIOLATES) and append to ALIGNMENT-LOG.md per your format.
+"""
+)
+```
+
+Include the BA verdict in the milestone review presented to the user. If DRIFTING or VIOLATES, name the drift explicitly so the user can decide whether to:
+- Approve anyway (drift is acceptable; logged in ALIGNMENT-LOG.md)
+- Revise the PRD to reflect the new direction
+- Reopen the milestone to remove the drifting work
+
 ### Step 4: Pause for User Approval — MANDATORY
 
 Present the milestone review to the user and **STOP**. Do not proceed to Step 5, do not start the next milestone, do not edit any other files until the user replies.

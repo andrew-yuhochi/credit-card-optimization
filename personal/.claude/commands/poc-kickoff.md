@@ -80,9 +80,14 @@ Wait for user input before proceeding. The user may ask for follow-up research f
 ### Step 4: Document Creation
 
 Delegate to the **architect** agent:
-> Draft the four gate documents (PRD.md, TDD.md, DATA-SOURCES.md, TASKS.md) for **$ARGUMENTS/poc**. Read DISCOVERY-NOTES.md, RESEARCH-REPORT.md, MARKET-ANALYSIS.md, and UX-SPEC.md as inputs. Follow your agent definition for responsibilities and the templates in `docs/templates/`. The PRD must weave in market positioning and UX decisions; the TDD must surface non-functional requirements from those reports (multi-tenancy hooks, latency needs, etc.); DATA-SOURCES.md must include real sample responses; TASKS.md tasks must each have a one-sentence Context field, acceptance criteria, and Demo Artifact per the template. Self-review for internal consistency before reporting back.
+> Draft the four gate documents (PRD.md, TDD.md, DATA-SOURCES.md, TASKS.md) for **$ARGUMENTS/poc**. Read DISCOVERY-NOTES.md, RESEARCH-REPORT.md, MARKET-ANALYSIS.md, and UX-SPEC.md as inputs. Follow your agent definition for responsibilities and the templates in `docs/templates/`. The PRD must weave in market positioning and UX decisions; PRD §3 Commercial Thesis (Agreed) must capture the adopted commercial verdict, uniqueness/moat, and monetization angle from the MARKET-ANALYSIS conversation — quote the user's actual decision, not just the analyst's recommendation. The TDD must surface non-functional requirements from those reports (multi-tenancy hooks, latency needs, etc.); DATA-SOURCES.md must include real sample responses; TASKS.md tasks must each have a one-sentence Context field, acceptance criteria, and Demo Artifact per the template. Self-review for internal consistency before reporting back.
 
-Present a summary of key decisions to the user. Ask: **"Does this design capture your vision? Any changes before we start implementation?"**
+After architect reports back, dispatch **business-analyst** (Mode A — PRD-drafting alignment):
+> Run Mode A: review `docs/$ARGUMENTS/poc/PRD.md` against `docs/$ARGUMENTS/poc/MARKET-ANALYSIS.md`. Verify §3 Commercial Thesis (Agreed) faithfully captures the adopted verdict, uniqueness/moat, and monetization angle from the MARKET-ANALYSIS conversation. Verify §6 Scope IN and §7 Scope OUT align with the agreed thesis. Output ALIGNED / DRIFTING / VIOLATES per your output format and append to `docs/$ARGUMENTS/poc/ALIGNMENT-LOG.md`.
+
+If BA returns DRIFTING or VIOLATES, surface the verdict to architect and ask architect to revise the flagged PRD sections BEFORE showing the user. Loop architect ↔ BA until verdict is ALIGNED.
+
+Once BA reports ALIGNED, present a summary of key decisions to the user. Ask: **"Does this design capture your vision? Any changes before we start implementation?"**
 
 Wait for user input. If changes are requested, update the affected documents and re-summarize only the changed sections.
 

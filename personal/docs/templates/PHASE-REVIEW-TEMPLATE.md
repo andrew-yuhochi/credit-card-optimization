@@ -32,7 +32,7 @@ Items from BACKLOG.md not addressed in this phase:
 | BL-XXX | [Description] | [Same / Higher / Lower] | [Promote / Defer / Drop] |
 
 ## Commercial Signal Results
-- **Instrument**: [What was measured — reference PRD §4]
+- **Instrument**: [What was measured — reference PRD §5 Commercial-Signal Instrument]
 - **Data collected**: [Summary of what the instrument showed]
 - **Interpretation**: [What this means for commercial viability]
 - **Recommendation**: [Continue measuring / Adjust instrument / Act on findings]
