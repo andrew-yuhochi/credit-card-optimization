@@ -150,7 +150,9 @@ When a phase introduces a **significant schema, data model, or extraction logic 
 
 **Claude Design** (claude.ai, included with Claude Pro/Max/Team/Enterprise) is Anthropic's visual design tool — text prompts in, interactive prototypes / decks / mockups out. It is a **manual web app**, not callable from Claude Code or any agent. Agents prepare the brief; the user runs Claude Design.
 
-**PoC scope — restrained**: produce ONE Claude Design Brief per project, for the single highest-risk UX surface (the one that, if wrong, would invalidate the concept). Do NOT use it for every screen at PoC. ux-designer owns the brief; brief lives at `docs/<project>/<phase>/designs/<surface-slug>-brief.md`; the prototype URL/export the user produces becomes the Demo Artifact for the implementing TASKS.md task.
+**Skip Claude Design entirely for non-visual projects**. CLI tools, plain-text email digests, Slack alerts, API-only services, and notebooks do not need a brief — UX-SPEC.md alone covers them. Claude Design only earns its place when there's a visual surface worth prototyping (web dashboards, rich HTML emails, presentation decks, one-pager reports, marketing visuals).
+
+**PoC scope — restrained**: when the project does have a visual surface, produce ONE Claude Design Brief per project, for the single highest-risk UX surface (the one that, if wrong, would invalidate the concept). Do NOT use it for every screen at PoC. ux-designer owns the brief; brief lives at `docs/<project>/<phase>/designs/<surface-slug>-brief.md`; the prototype URL/export the user produces becomes the Demo Artifact for the implementing TASKS.md task.
 
 **MVP scope**: ux-designer may produce additional briefs on-demand for daily-use UX refinements. The codebase-reading capability of Claude Design (it reads your repo for design system consistency) starts to matter here.
 

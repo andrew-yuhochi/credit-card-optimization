@@ -62,6 +62,27 @@ Follow the template at `docs/templates/UX-SPEC-TEMPLATE.md`. Core sections:
 
 The team has limited UI design capability and uses **Claude Design** (Anthropic's web app) to generate interactive prototypes. You do NOT run Claude Design — it's a manual user step. Your job is to produce the **brief** the user pastes into Claude Design, and reference the resulting prototype URL/export in UX-SPEC.md.
 
+### When to skip the brief entirely
+
+Produce a brief ONLY when the project has a visual surface worth prototyping. Skip the brief — UX-SPEC.md alone is your deliverable — when the project is:
+
+- CLI-only (command structure and text output)
+- Plain-text email digest or alert
+- Slack / Discord notification
+- API-only (no human-facing UI)
+- Notebook (Jupyter — the user controls layout)
+
+Produce a brief when the project has:
+
+- Web dashboard or app UI
+- Rich HTML email digest with non-trivial visual hierarchy
+- Presentation deck or one-pager report (Claude Design generates these too)
+- Marketing visual or landing page (MVP/Beta)
+
+When in doubt, ask the user during your work: *"This project's primary surface is X — is it worth running Claude Design on, or is the textual UX-SPEC sufficient?"*
+
+### Brief production (when applicable)
+
 **At PoC stage, produce ONE brief — for the single highest-risk UX surface.** This is the surface that, if wrong, would invalidate the project concept (e.g., the dashboard for a paper-monitoring tool, the categorization view for a bookkeeping tool). Do NOT produce a brief for every surface in PoC — that's MVP/Beta scope.
 
 Save the brief to: `docs/<project>/<current-phase>/designs/<surface-slug>-brief.md`
