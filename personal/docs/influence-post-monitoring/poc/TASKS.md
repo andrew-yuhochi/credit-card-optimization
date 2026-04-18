@@ -1,7 +1,7 @@
 # Task Breakdown — Influence Post Monitoring
 
 > **Status**: Active
-> **Last Updated**: 2026-04-17
+> **Last Updated**: 2026-04-17 (PoC complete — all 20 tasks done)
 > **Depends on**: PRD.md, TDD.md, DATA-SOURCES.md (all approved)
 
 ---
@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 14 |
+| Done | 20 |
 | In Progress | 0 |
-| Not Started | 6 |
+| Not Started | 0 |
 | Blocked | 0 |
 
 ---
@@ -436,7 +436,7 @@
 ## Sprint 11: Documentation and Deployment
 
 ### TASK-019: README and setup documentation
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: content-writer
 - **Complexity**: Low
 - **Depends on**: TASK-018
@@ -459,7 +459,7 @@
 ---
 
 ### TASK-020: Final security review and pre-deployment checklist
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: architect
 - **Complexity**: Low
 - **Depends on**: TASK-019
