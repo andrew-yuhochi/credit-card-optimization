@@ -393,7 +393,7 @@
 ## Sprint 10: Historical Accuracy and Testing
 
 ### TASK-017: Historical accuracy tracking and multi-horizon return backfill
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: Low
 - **Depends on**: TASK-014
