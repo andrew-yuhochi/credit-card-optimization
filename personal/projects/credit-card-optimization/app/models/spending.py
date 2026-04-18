@@ -53,6 +53,7 @@ class SpendBucket(BaseModel):
     resolved_category: str
     store_slug: str | None = None
     acceptance_constraints: set[str] = set()
+    is_chexy: bool = False
 
 
 class SpendingProfile(BaseModel):
