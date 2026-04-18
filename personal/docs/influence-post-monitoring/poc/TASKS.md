@@ -346,7 +346,7 @@
 ## Sprint 9: Pipeline Orchestration and Scheduling
 
 ### TASK-015: Pipeline orchestrator (morning and evening entry points)
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: High
 - **Depends on**: TASK-003, TASK-005, TASK-006, TASK-007, TASK-010, TASK-012, TASK-013, TASK-014
