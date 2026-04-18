@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 7 |
+| Done | 8 |
 | In Progress | 0 |
-| To Do | 20 |
+| To Do | 19 |
 | Blocked | 0 |
 
 ---
@@ -160,7 +160,7 @@
 
 ### TASK-008: Explanation Generator
 
-- **Status**: To Do
+- **Status**: Done (2026-04-17)
 - **Agent**: `data-pipeline`
 - **Complexity**: Medium
 - **Depends on**: TASK-007
