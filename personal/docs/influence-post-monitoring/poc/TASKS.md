@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 12 |
+| Done | 13 |
 | In Progress | 0 |
-| Not Started | 8 |
+| Not Started | 7 |
 | Blocked | 0 |
 
 ---
@@ -294,7 +294,7 @@
 ---
 
 ### TASK-013: Evening scorecard email renderer
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: Medium
 - **Depends on**: TASK-012
@@ -302,18 +302,18 @@
 - **Context**: The evening scorecard is both the daily feedback loop and the commercial signal instrument. The running track record panel in the footer must persist correctly from the first trading day. SHORT signal HIT/MISS logic (negative return = HIT for short) is a quiet source of bugs — must be explicit.
 - **Description**: Implement the evening scorecard renderer in `email/renderer.py`. Performance table, running track record stats footer, edge case handling for halted stocks and no watchlist days.
 - **Acceptance Criteria**:
-  - [ ] Performance table ranks signals by `return_pct` descending (after SHORT correction: for SHORT signals, negate `return_pct` for ranking purposes so the "best" SHORT is most negative)
-  - [ ] Each row shows: rank (by performance), ticker, direction, open-to-close return, morning rank, HIT/MISS label
-  - [ ] SHORT signals with negative `return_pct`: label `"✓ HIT (short = gain)"`
-  - [ ] SHORT signals with positive `return_pct`: label `"✗ MISS (short went up)"`
-  - [ ] Running track record footer: total signals scored, directional hit rate, avg gain on correct, avg loss on incorrect, corroborated signal accuracy, top performer this month
-  - [ ] Track record age caveat shown when `daily_summaries` count < 20 trading days
-  - [ ] Halted/price-missing stocks flagged as `"HALTED — no price data"` and excluded from hit rate
-  - [ ] No-watchlist scorecard (quiet night) renders the appropriate message from UX-SPEC.md
-  - [ ] Subject line: `Scorecard [{Mon DD}] — {X}/{N} correct | Best: {TICKER} {±%} (was #{rank})`
-  - [ ] Plain-text version complete and correct
-  - [ ] Unit tests: all-hits day, all-misses day, mixed day, day with halted stock, quiet-night scorecard
-- **Notes**: The `is_hit` field in `signals` table uses the SHORT-aware definition: `(direction=='LONG' and return_pct>0) or (direction=='SHORT' and return_pct<0)`. The renderer reads `is_hit` from DB — do not recompute in the renderer.
+  - [x] Performance table ranks signals by `return_pct` descending (after SHORT correction: for SHORT signals, negate `return_pct` for ranking purposes so the "best" SHORT is most negative)
+  - [x] Each row shows: rank (by performance), ticker, direction, open-to-close return, morning rank, HIT/MISS label
+  - [x] SHORT signals with negative `return_pct`: label `"✓ HIT  (short = gain)"`
+  - [x] SHORT signals with positive `return_pct`: label `"✗ MISS  (short went up)"`
+  - [x] Running track record footer: total signals scored, directional hit rate, avg gain on correct, avg loss on incorrect, corroborated signal accuracy, top performer this month
+  - [x] Track record age caveat shown when trading days < 20
+  - [x] Halted/price-missing stocks flagged as `"HALTED — no price data"` and excluded from hit rate
+  - [x] No-watchlist scorecard (quiet night) renders the appropriate message from UX-SPEC.md
+  - [x] Subject line: `Scorecard [{Mon DD}] — {X}/{N} correct | Best: {TICKER} {±%} (was #{rank})`
+  - [x] Plain-text version complete and correct
+  - [x] Unit tests: all-hits day, all-misses day, mixed day, day with halted stock, quiet-night scorecard
+- **Notes**: `EveningScorecardRenderer` added to `email/renderer.py`. New repo methods: `get_evening_scorecard_signals`, `get_running_stats`, `get_trading_days_scored`, `get_first_scored_date`, `get_top_performer_month`. Trading-days count sourced from scored signals (not `daily_summaries`) since TASK-014 not yet built. Separator between hits and misses uses `"─ " * 27` pattern.
 
 ---
 
