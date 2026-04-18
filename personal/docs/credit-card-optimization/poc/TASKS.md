@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 6 |
+| Done | 7 |
 | In Progress | 0 |
-| To Do | 21 |
+| To Do | 20 |
 | Blocked | 0 |
 
 ---
@@ -138,7 +138,7 @@
 
 ### TASK-007: MILP Optimizer (Core Solve)
 
-- **Status**: To Do
+- **Status**: Done (2026-04-17)
 - **Agent**: `data-pipeline`
 - **Complexity**: High
 - **Depends on**: TASK-005, TASK-006

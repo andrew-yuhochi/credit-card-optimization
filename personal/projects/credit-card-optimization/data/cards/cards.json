@@ -83,6 +83,9 @@
       "category_caps_monthly": {
         "_combined_accelerated": 4166.67
       },
+      "category_cap_groups": {
+        "_combined_accelerated": ["grocery", "dining", "food_delivery", "entertainment", "streaming", "gas", "transit"]
+      },
       "store_overrides": {
         "costco": {
           "rate": 1.0,
@@ -251,6 +254,9 @@
       },
       "category_caps_monthly": {
         "_combined_eats_drinks": 2500.0
+      },
+      "category_cap_groups": {
+        "_combined_eats_drinks": ["grocery", "dining", "food_delivery"]
       },
       "store_overrides": {
         "costco": {

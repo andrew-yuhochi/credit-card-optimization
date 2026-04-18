@@ -49,6 +49,7 @@ class CardRecord(BaseModel):
     approval: ApprovalRequirements
     category_rates: dict[str, float]
     category_caps_monthly: dict[str, float] = {}
+    category_cap_groups: dict[str, list[str]] = {}
     store_overrides: dict[str, StoreOverride] = {}
     store_acceptance: dict[str, bool] = {}
     point_system: str
