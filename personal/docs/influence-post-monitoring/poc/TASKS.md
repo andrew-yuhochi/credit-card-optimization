@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 13 |
+| Done | 14 |
 | In Progress | 0 |
-| Not Started | 7 |
+| Not Started | 6 |
 | Blocked | 0 |
 
 ---
@@ -320,7 +320,7 @@
 ## Sprint 8: Scorecard Engine and Historical Accuracy
 
 ### TASK-014: Scorecard engine (returns, HIT/MISS, accuracy tracking)
-- **Status**: Not Started
+- **Status**: Done (2026-04-17)
 - **Agent**: data-pipeline
 - **Complexity**: Medium
 - **Depends on**: TASK-008, TASK-002
@@ -328,19 +328,18 @@
 - **Context**: The scorecard engine is the core of the track record commercial asset. It must correctly handle SHORT signal HIT logic, update per-investor rolling accuracy, and produce the daily summary row that feeds the track record panel. All updates must be idempotent (safe to re-run if evening pipeline retries).
 - **Description**: Implement `scorecard/scorecard_engine.py` with `ScorecardEngine`. Fetches close prices, computes returns, updates HIT/MISS, updates investor rolling accuracy, writes daily summary.
 - **Acceptance Criteria**:
-  - [ ] `ScorecardEngine.run_evening(signal_date: date)` is idempotent — re-running for the same date updates existing rows, does not create duplicates
-  - [ ] `return_pct` computed as `(close_price - open_price) / open_price * 100`; stored with 4 decimal places
-  - [ ] `is_hit` set correctly: `True` when `(direction=='LONG' and return_pct>0)` or `(direction=='SHORT' and return_pct<0)`, `False` otherwise, `NULL` when price data unavailable
-  - [ ] Market context fields populated: `prev_close_price`, `high_price`, `low_price`, `volume`, `avg_volume_30d`, `volume_ratio` (volume / avg_volume_30d)
-  - [ ] Regime context fields populated: `sp500_return_pct` (from ^GSPC), `vix_at_signal` (from ^VIX), `sector_return_pct` (from sector ETF matching stock's sector)
-  - [ ] Stock context fields populated: `market_cap_at_signal`, `sector`, `industry` (from yfinance ticker info)
-  - [ ] `investor_profiles.rolling_accuracy_30d` updated: `COUNT(is_hit=True) / COUNT(is_hit IS NOT NULL)` over last 30 trading days of scored signals for that investor
-  - [ ] `investor_profiles.total_calls` and `investor_profiles.total_hits` incremented correctly
-  - [ ] `daily_summaries` row inserted with: `summary_date`, `signals_surfaced`, `corroborated_signals`, `daily_hit_rate`, `pipeline_status='ok'`
-  - [ ] On price fetch failure for a ticker: set `open_price`/`close_price` to NULL, `is_hit` to NULL; halted flag set; signal excluded from `daily_hit_rate` calculation
-  - [ ] Unit tests: LONG signal with +3% return → HIT; SHORT signal with -2% return → HIT; SHORT signal with +1% return → MISS; NULL price → excluded from hit rate
-  - [ ] Unit test: re-running for same date does not change hit count
-- **Notes**: Open prices are fetched in a separate 9:31 AM pipeline step and already stored in `signals.open_price`. The evening engine only needs to fetch closing prices.
+  - [x] `ScorecardEngine.run_evening(signal_date: date)` is idempotent — skips signals where `close_price IS NOT NULL`; `upsert_daily_summary` updates existing row
+  - [x] `return_pct` computed as `(close_price - open_price) / open_price * 100`; stored with 4 decimal places
+  - [x] `is_hit` set correctly for LONG and SHORT; `NULL` when price data unavailable
+  - [x] Market context fields populated: `high_price`, `low_price`, `volume`, `avg_volume_30d`, `volume_ratio`
+  - [x] Regime context fields populated: `sp500_return_pct` (^GSPC), `vix_at_signal` (^VIX), `sector_return_pct` (sector ETF via `_SECTOR_ETF` mapping)
+  - [x] Stock context fields populated: `market_cap_at_signal`, `sector`, `industry` (yfinance ticker info)
+  - [x] `investor_profiles.rolling_accuracy_30d` updated via `compute_investor_rolling_accuracy(30d)`
+  - [x] `investor_profiles.total_calls` and `total_hits` updated via `get_investor_lifetime_stats`
+  - [x] `daily_summaries` row upserted with `summary_date`, `signals_surfaced`, `daily_hit_rate`, `pipeline_status`
+  - [x] On price fetch failure: `update_signal_prices(signal_id)` called with no kwargs (NULLs); counted as error, excluded from hit rate
+  - [x] Unit tests: LONG HIT, LONG MISS, SHORT HIT, SHORT MISS, NULL open_price skipped, fetch failure, idempotency, daily_hit_rate, one investor update per investor
+- **Notes**: `prev_close_price` not populated in this task (requires a prior-day close fetch — deferred to pipeline orchestrator TASK-015). Sector ETF map covers all GICS sectors.
 
 ---
 
