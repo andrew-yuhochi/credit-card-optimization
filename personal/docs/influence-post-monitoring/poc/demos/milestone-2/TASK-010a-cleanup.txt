@@ -1,0 +1,42 @@
+commit 79accd5cd8d1433cef63ac8d8b569239dc55d621
+Author: Andrew <andrewyu0517@gmail.com>
+Date:   Sun Apr 19 16:55:14 2026 -0700
+
+    chore(influence-post-monitoring): complete TASK-010a legacy cleanup
+
+ influence_monitor/calendar.py                      | 109 ----
+ influence_monitor/email/__init__.py                |   0
+ influence_monitor/email/base.py                    |  45 --
+ influence_monitor/email/registry.py                |  16 -
+ influence_monitor/email/renderer.py                | 638 ---------------------
+ influence_monitor/email/resend_provider.py         | 139 -----
+ influence_monitor/email/sendgrid_provider.py       |  26 -
+ .../email/templates/morning_watchlist.html         |  12 -
+ .../email/templates/morning_watchlist.txt          |  12 -
+ influence_monitor/email/templates/no_signals.txt   |   9 -
+ influence_monitor/email/templates/no_watchlist.txt |   9 -
+ influence_monitor/email/templates/scorecard.txt    |  14 -
+ influence_monitor/email/templates/signal_card.txt  |   7 -
+ influence_monitor/market_data/index_resolver.py    | 208 -------
+ influence_monitor/pipeline.py                      | 630 +-------------------
+ influence_monitor/scorecard/__init__.py            |   0
+ influence_monitor/scorecard/scorecard_engine.py    | 416 --------------
+ scripts/demo_task006_extraction.py                 | 146 +++++
+ scripts/demo_trading_calendar.py                   | 114 ++++
+ tests/test_email_provider.py                       | 236 --------
+ tests/test_evening_renderer.py                     | 444 --------------
+ tests/test_index_resolver.py                       | 330 -----------
+ tests/test_integration.py                          | 551 +-----------------
+ tests/test_morning_renderer.py                     | 587 -------------------
+ tests/test_pipeline.py                             | 405 +------------
+ tests/test_scorecard_engine.py                     | 516 -----------------
+ 26 files changed, 264 insertions(+), 5355 deletions(-)
+
+=== pytest ===
+............................................s........................... [ 19%]
+........................................................................ [ 39%]
+........................................................................ [ 59%]
+........................................................................ [ 79%]
+........................................................................ [ 99%]
+..                                                                       [100%]
+361 passed, 3 skipped in 6.00s

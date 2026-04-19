@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 6 |
+| Done | 7 |
 | In Progress | 0 |
-| To Do | 13 |
+| To Do | 12 |
 | Blocked | 0 |
 
 ---
@@ -277,7 +277,7 @@
 - **Notes**: Follower tier thresholds (high 100K+, mid 10K-50K) are in `scoring_config` and configurable.
 
 ### TASK-010a: Legacy pipeline cleanup (delete email/calendar/scorecard/index_resolver)
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-007, TASK-008, TASK-009
