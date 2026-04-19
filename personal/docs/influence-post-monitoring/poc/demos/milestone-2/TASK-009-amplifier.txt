@@ -1,0 +1,71 @@
+TASK-009 Demo Artifact — AmplifierFetcher + MarketCapResolver
+Generated: 2026-04-19
+Mode: Mock retweeters (twitter_cookies.json exists but fetch_retweeters is async/twikit;
+      mock used to avoid event-loop requirement in demo script)
+
+=== Post ===
+  author:      BillAckman
+  external_id: 1234567890
+  text:        "FNMA is massively underpriced. The government has been enriching itself
+               at the expense of shareholders for over a decade."
+  posted_at:   2026-04-14T14:30:00+00:00
+  view_count:  215,000
+  repost_count: 1,200
+  tier:        ACT_NOW (views >= 50,000 threshold)
+
+=== Retweeter Fetch ===
+  Retweeters fetched: 10
+
+  Tier breakdown (thresholds from scoring_config):
+    amplifier_high_follower_tier = 100,000 followers
+    amplifier_mid_follower_tier  = 10,000 followers
+
+  high-tier (>= 100K followers): 2
+    - fund_manager_1  (250,000 followers, verified)
+    - fund_manager_2  (180,000 followers)
+
+  mid-tier (10K–99K followers): 3
+    - analyst_1       ( 45,000 followers)
+    - analyst_2       ( 22,000 followers)
+    - blogger_1       ( 15,000 followers)
+
+  low-tier (< 10K followers):   5
+    - retail_1 (800), retail_2 (300), retail_3 (120), retail_4 (55), retail_5 (None)
+
+  monitored (external_id in accounts table): 0
+    Note: BillAckman's external_id was NULL in accounts seed — monitoring cross-reference
+    requires accounts.external_id to be populated via handle-resolution (TASK-005).
+
+=== Amplifier Score (F4) ===
+  Formula: min((high_tier * 3 + mid_tier * 1 + monitored * 5) / 10, 10.0)
+  raw    = 2*3 + 3*1 + 0*5 = 9.0
+  score  = 9.0 / 10.0 = 0.90
+
+=== Retweeters Persisted to DB (retweeters table) ===
++----+---------+----------------------+------------------+-----------------+-------------+--------------+---------------------+
+| id | post_id | retweeter_external_id| retweeter_handle | followers_count | is_verified | is_monitored | fetched_at          |
++----+---------+----------------------+------------------+-----------------+-------------+--------------+---------------------+
+|  1 |       1 | rt_high_1            | fund_manager_1   |          250000 |           1 |            0 | 2026-04-19 23:38:50 |
+|  2 |       1 | rt_high_2            | fund_manager_2   |          180000 |           0 |            0 | 2026-04-19 23:38:50 |
+|  3 |       1 | rt_mid_1             | analyst_1        |           45000 |           0 |            0 | 2026-04-19 23:38:50 |
+|  4 |       1 | rt_mid_2             | analyst_2        |           22000 |           0 |            0 | 2026-04-19 23:38:50 |
+|  5 |       1 | rt_mid_3             | blogger_1        |           15000 |           0 |            0 | 2026-04-19 23:38:50 |
+|  6 |       1 | rt_low_1             | retail_1         |             800 |           0 |            0 | 2026-04-19 23:38:50 |
+|  7 |       1 | rt_low_2             | retail_2         |             300 |           0 |            0 | 2026-04-19 23:38:50 |
+|  8 |       1 | rt_low_3             | retail_3         |             120 |           0 |            0 | 2026-04-19 23:38:50 |
+|  9 |       1 | rt_low_4             | retail_4         |              55 |           0 |            0 | 2026-04-19 23:38:50 |
+| 10 |       1 | rt_low_5             | retail_5         |            NULL |           0 |            0 | 2026-04-19 23:38:50 |
++----+---------+----------------------+------------------+-----------------+-------------+--------------+---------------------+
+
+=== MarketCapResolver (smoke test — live finvizfinance) ===
+  Verified via unit tests (35 tests passing).
+  Live call requires network; class boundaries confirmed against test suite:
+    3911.50B → 3,911,500M → Mega  (>= 200,000M threshold)
+    498.22M  →      498M  → Small (>= 300M, < 2,000M)
+    ""       →      None  → Micro (default fallback)
+  Cache TTL: 7 days (enforced by SQL: last_updated >= datetime('now', '-7 days'))
+
+=== scoring_config rows after reseed (19 total) ===
+  ... (17 original rows) ...
+  amplifier_high_follower_tier = 100000  [NEW]
+  amplifier_mid_follower_tier  = 10000   [NEW]

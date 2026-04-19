@@ -249,7 +249,7 @@
 - **Notes**: ScoringEngine must be pure — receives `PostScore` + `RawPost` + account credibility, does not call external services. Testable in isolation. Legacy tests `test_corroboration.py` and the existing `test_scoring_engine.py` assertion body must be removed or rewritten; the test-validator pass should surface any stale asserts.
 
 ### TASK-009: Amplifier fetcher + market-cap resolver
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-004, TASK-008
