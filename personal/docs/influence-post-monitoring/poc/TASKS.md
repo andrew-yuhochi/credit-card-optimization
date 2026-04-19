@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 2 |
+| Done | 3 |
 | In Progress | 0 |
-| To Do | 16 |
+| To Do | 15 |
 | Blocked | 0 |
 
 ---
@@ -20,13 +20,13 @@
 ## Milestone 1: First WhatsApp Alert End-to-End (hardcoded data)
 
 > **Goal**: Prove the WhatsApp delivery path works before any pipeline is built. User receives a formatted morning alert on their phone using hardcoded sample signals. Validates the Twilio setup, the message format, and the always-send + disclaimer footer rules.
-> **Acceptance Criteria**: User's phone receives a WhatsApp message formatted per PRD §6.16 (Act Now + Watch List sections, conviction dots, disclaimer footer). User approves the format before building the real pipeline.
+> **Acceptance Criteria**: (1) User's phone receives a formatted morning alert (Act Now + Watch List, conviction score, warning emojis, poster strategy, views/hr + posted time). (2) User's phone receives the empty-state alert (`--demo-empty`) and approves the no-signals message. User approves both formats before building the real pipeline.
 > **Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-1/`
-> **Review Checkpoint**: User reviews the delivered message format and approves before Milestone 2 begins. Run `/milestone-complete influence-post-monitoring`.
+> **Review Checkpoint**: User reviews both the full alert and the empty-state alert on device and approves before Milestone 2 begins. Run `/milestone-complete influence-post-monitoring`.
 > **Status**: To Do
 
 ### PRE-001: Twilio account + WhatsApp Sandbox activation (human prerequisite)
-- **Status**: To Do
+- **Status**: Done (2026-04-18)
 - **Agent**: none — manual user process
 - **Complexity**: Low
 - **Depends on**: None
@@ -470,4 +470,13 @@
 ---
 
 ## Completed Milestones Log
-<!-- Move completed milestones here with completion date and review outcome -->
+
+### ✅ Milestone 1 — First WhatsApp Alert End-to-End (hardcoded data)
+**Approved**: 2026-04-19 | **Outcome**: Approved
+
+**Tasks**: PRE-001, TASK-001, TASK-002
+**Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-1/`
+
+**What shipped**: Twilio + CallMeBot delivery layer; `render_morning` with full UX (Act Now / Watch List, market cap class, ✅ conviction score + %, 🔄/⚔️ warning emojis, multi-poster list, 150-char quote truncation, 2-message split at 4,000 chars, `❌ No signals for today.` empty state); `--demo` and `--demo-empty` CLI entrypoints. 343 tests passing.
+
+**Deviations accepted**: Conviction dots replaced by ✅+%; CORROBORATED label removed (multi-poster list self-evident); disclaimer footer removed for PoC personal-use readability (must be re-evaluated before any non-personal-use distribution — PRD §8 override to be added by architect).
