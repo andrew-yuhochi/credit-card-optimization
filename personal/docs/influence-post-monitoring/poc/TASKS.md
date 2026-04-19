@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 1 |
+| Done | 2 |
 | In Progress | 0 |
-| To Do | 17 |
+| To Do | 16 |
 | Blocked | 0 |
 
 ---
@@ -63,7 +63,7 @@
 - **Notes**: Per CLAUDE.md GitHub Rule #2, this is the first task in the PoC — create the `andrew-yuhochi/influence-post-monitoring` public GitHub repo at first task completion, before pushing. README includes the `> Built with [Claude Code](https://claude.ai/code)` line.
 
 ### TASK-002: Morning alert renderer + end-to-end hardcoded demo
-- **Status**: To Do
+- **Status**: Done (2026-04-18)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-001
