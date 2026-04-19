@@ -1,0 +1,74 @@
+=== TASK-004 Demo Artifact: twikit ingestion + consecutive_failures test ===
+
+Run at: 2026-04-19T14:59:24.749929+00:00
+
+--- Integration: fetch 3 posts from @BillAckman ---
+Posts fetched: 20
+  Post 1:
+    post_id      : 2045848751957303639
+    source_type  : twitter_twikit
+    author_handle: BillAckman
+    posted_at    : 2026-04-19T12:55:27+00:00
+    fetched_at   : 2026-04-19T14:59:23.641751+00:00
+    text         : RT @VividProwess: BREAKING: PRESIDENT TRUMP: "The United States is going to knock out every single Power Plant, and ev
+    view_count   : 5
+    repost_count : 1051
+    reply_count  : 0
+    like_count   : 0
+    bookmark_cnt : 0
+    raw_payload  : ['__typename', 'core', 'edit_control', 'is_translatable', 'legacy'] (full JSON stored)
+
+  Post 2:
+    post_id      : 2045840860835721492
+    source_type  : twitter_twikit
+    author_handle: BillAckman
+    posted_at    : 2026-04-19T12:24:05+00:00
+    fetched_at   : 2026-04-19T14:59:23.641751+00:00
+    text         : RT @nypost: Bruce Blakeman's 100-day plan to 'fix' New York if elected governor: Lower taxes and a return to law and order
+    view_count   : 2
+    repost_count : 277
+    reply_count  : 0
+    like_count   : 0
+    bookmark_cnt : 0
+    raw_payload  : ['__typename', 'core', 'edit_control', 'is_translatable', 'legacy'] (full JSON stored)
+
+  Post 3:
+    post_id      : 2045821825532191208
+    source_type  : twitter_twikit
+    author_handle: BillAckman
+    posted_at    : 2026-04-19T11:08:27+00:00
+    fetched_at   : 2026-04-19T14:59:23.641751+00:00
+    text         : RT @katiewr31413491: The man @NYCMayorsOffice is trolling gave $400 million to @MSKCC_BreastCA cancer hospital, $60 million to NY
+    view_count   : 21
+    repost_count : 484
+    reply_count  : 0
+    like_count   : 0
+    bookmark_cnt : 0
+    raw_payload  : ['__typename', 'core', 'edit_control', 'is_translatable', 'legacy'] (full JSON stored)
+
+--- consecutive_failures DB test ---
+  Before fetch      : consecutive_failures = 0
+  After failure     : consecutive_failures = 1
+  After success     : consecutive_failures = 0
+
+--- Unit test suite ---
+  20/20 tests passed (mocked twikit)
+  Covers: post filtering, failure counter, rename path, backup promotion,
+          all-backups-exhausted, debounce window, retweeters, search_user
+
+--- Acceptance criteria ---
+  [x] SocialMediaSource ABC defines fetch_recent_posts, fetch_retweeters, search_user, source_type
+  [x] RawPost includes all TDD §2.1 fields (engagement metrics, raw_payload, posted_at, fetched_at)
+  [x] TwitterTwikitSource authenticates via cookies on subsequent runs
+  [x] fetch_recent_posts filters to posts with posted_at >= since
+  [x] Full tweet JSON stored in RawPost.raw_payload
+  [x] fetch_retweeters wraps client.get_retweeters(), returns Retweeter objects
+  [x] search_user(display_name) returns candidate User objects for handle rediscovery
+  [x] Per-account fetch failure: logs WARNING, increments consecutive_failures, continues
+  [x] Successful fetch: resets consecutive_failures = 0
+  [x] AccountRegistry credible-rename heuristic documented in code comments
+  [x] retry_rest_minutes debounce enforced between successive retries
+  [x] data/twitter_cookies.json in .gitignore
+  [x] source_type() returns twitter_twikit
+  [x] Integration test: 20 posts fetched from @BillAckman with all fields populated
+  [x] consecutive_failures = 0 after successful fetch

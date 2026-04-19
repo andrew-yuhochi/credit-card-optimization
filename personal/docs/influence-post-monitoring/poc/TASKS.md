@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 4 |
+| Done | 5 |
 | In Progress | 0 |
-| To Do | 14 |
+| To Do | 13 |
 | Blocked | 0 |
 
 ---
@@ -122,7 +122,7 @@
 - **Notes**: `libsql_client` is the Turso-provided SQLite-compatible client. Seed `config/accounts.json` from the DATA-SOURCES.md §Monitored Accounts table (all 45 entries, including B14 Josh Wolfe and B15 Mark Yusko). `config/scoring_config_seed.json` includes all 17 scoring keys — weights, virality thresholds, direction flip penalty (seeded to 0.0), vol lookback (seeded to 20), registry ops (max_consecutive_failures, retry_rest_minutes), and liquidity modifiers — and must be identical to the DATA-SOURCES.md table.
 
 ### TASK-004: SocialMediaSource ABC + twikit ingestion + AccountRegistry
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: High
 - **Depends on**: TASK-003

@@ -1,72 +1,19 @@
-=== sqlite3 data/signals.db '.schema signals' ===
+=== sqlite3 data/signals.db '.schema users' ===
 
-CREATE TABLE signals (
-    id                      INTEGER PRIMARY KEY,
-    user_id                 INTEGER NOT NULL DEFAULT 1,
-    tenant_id               INTEGER NOT NULL DEFAULT 1,
-    -- Provenance
-    post_id                 INTEGER NOT NULL,
-    account_id              INTEGER NOT NULL,
-    signal_date             DATE NOT NULL,
-    -- Ticker
-    ticker                  TEXT NOT NULL,
-    extraction_confidence   TEXT NOT NULL,
-    market_cap_class        TEXT,
-    -- LLM scoring
-    direction               TEXT NOT NULL,
-    conviction_level        INTEGER,
-    argument_quality        TEXT,
-    time_horizon            TEXT,
-    market_moving_potential BOOLEAN,
-    key_claim               TEXT,
-    rationale               TEXT,
-    llm_model_version       TEXT,
-    llm_raw_response        TEXT,
-    llm_input_tokens        INTEGER,
-    llm_output_tokens       INTEGER,
-    -- Five factor scores
-    score_credibility       REAL,
-    score_virality_abs      REAL,
-    score_virality_vel      REAL,
-    score_consensus         REAL,
-    score_amplifier         REAL,
-    liquidity_modifier      REAL,
-    conviction_score        REAL,
-    direction_flip          BOOLEAN DEFAULT 0,
-    conflict_group          TEXT,
-    penalty_applied         REAL DEFAULT 0,
-    final_score             REAL,
-    tier                    TEXT NOT NULL,
-    morning_rank            INTEGER,
-    -- Outcome (evening pass; NULL until then)
-    prev_close              REAL,
-    today_open              REAL,
-    today_close             REAL,
-    overnight_return        REAL,
-    tradeable_return        REAL,
-    spy_return              REAL,
-    stock_20d_vol           REAL,
-    excess_vol_score        REAL,
-    price_data_source       TEXT,
-    outcome_fetched_at      DATETIME,
-    -- Engagement views
-    engagement_views        INTEGER,
-    engagement_reposts      INTEGER,
-    views_per_hour          REAL,
-    -- Metadata
-    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (post_id) REFERENCES posts(id),
-    FOREIGN KEY (account_id) REFERENCES accounts(id),
+CREATE TABLE users (
+    id          INTEGER PRIMARY KEY,
+    user_id     INTEGER NOT NULL DEFAULT 1,
+    tenant_id   INTEGER NOT NULL DEFAULT 1,
+    phone_e164  TEXT NOT NULL,
+    timezone    TEXT NOT NULL DEFAULT 'America/Toronto',
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
-CREATE INDEX idx_signals_date ON signals(signal_date, tenant_id);
-CREATE INDEX idx_signals_ticker ON signals(ticker, signal_date);
-CREATE INDEX idx_signals_account ON signals(account_id, signal_date);
 
 === SELECT COUNT(*) FROM accounts GROUP BY status; ===
 
-backup|15
-primary|30
+15
+30
 
 === SELECT key, value FROM scoring_config ORDER BY key; ===
 
