@@ -218,7 +218,7 @@
 - **Notes**: Store `llm_model_version`, raw response, token counts on every `signals` row for MVP audit and re-scoring (the `signals` table already has `llm_model_version`, `llm_raw_response`, `llm_input_tokens`, `llm_output_tokens` columns — these are populated by TASK-008, not this task).
 
 ### TASK-008: Five-factor scoring engine + conflict resolver + signal classifier
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: High
 - **Depends on**: TASK-003, TASK-006, TASK-007

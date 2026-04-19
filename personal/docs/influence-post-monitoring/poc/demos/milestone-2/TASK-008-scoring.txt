@@ -1,0 +1,202 @@
+================================================================================
+TASK-008 SCORING DEMO — Influence Post Monitoring
+Generated: 2026-04-19  |  Config: scoring_config_seed.json defaults
+================================================================================
+
+Config weights:
+  weight_credibility            : 0.25
+  weight_virality_abs           : 0.35
+  weight_virality_vel           : 0.15
+  weight_consensus              : 0.25
+  weight_amplifier              : 0.2
+  virality_views_threshold      : 50000.0
+  virality_reposts_threshold    : 500.0
+  watch_velocity_floor          : 1000.0
+  direction_flip_penalty        : 0.0
+
+--------------------------------------------------------------------------------
+SCORED SIGNALS  (10 fixture + 2 flip demo + 3 mixed-direction demo)
+--------------------------------------------------------------------------------
+
+Signal  1: FNMA         LONG   TIER=ACT_NOW
+  Poster:          BillAckman
+  Conviction lvl:  4  Argument: HIGH
+  Views:           127834   Reposts: 1256   VPH: 16501.81
+  F1 credibility:  0.9
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:8.25   penalty=0.0   final_score=8.25
+
+Signal  2: NFLX         SHORT  TIER=ACT_NOW
+  Poster:          michaeljburry
+  Conviction lvl:  4  Argument: HIGH
+  Views:           89000   Reposts: 750   VPH: 9888.89
+  F1 credibility:  0.9
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:8.25   penalty=0.0   final_score=8.25
+
+Signal  3: AAPL         LONG   TIER=ACT_NOW
+  Poster:          DanielSLoeb1
+  Conviction lvl:  3  Argument: MEDIUM
+  Views:           62000   Reposts: 520   VPH: 5904.76
+  F1 credibility:  0.8
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:8.0   penalty=0.0   final_score=8.0
+
+Signal  4: NOVA         LONG   TIER=WATCH
+  Poster:          GavinSBaker
+  Conviction lvl:  3  Argument: MEDIUM
+  Views:           12000   Reposts: 120   VPH: 1600.0
+  F1 credibility:  0.7
+  F2a virality_abs:0.24   F2b virality_vel: 1.0 (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:5.75   penalty=0.0   final_score=5.75
+
+Signal  5: RIVN         SHORT  TIER=WATCH
+  Poster:          WallStCynic
+  Conviction lvl:  3  Argument: MEDIUM
+  Views:           9500   Reposts: 95   VPH: 1117.65
+  F1 credibility:  0.8
+  F2a virality_abs:0.19   F2b virality_vel: 1.0 (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:6.0   penalty=0.0   final_score=6.0
+
+Signal  6: GME          LONG   TIER=ACT_NOW
+  Poster:          TruthGundlach
+  Conviction lvl:  3  Argument: MEDIUM
+  Views:           75000   Reposts: 600   VPH: 6521.74
+  F1 credibility:  0.8
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:8.0   penalty=0.0   final_score=8.0
+
+Signal  7: TSLA         LONG   TIER=ACT_NOW
+  Poster:          CathieWood
+  Conviction lvl:  4  Argument: HIGH
+  Views:           95000   Reposts: 900   VPH: 7600.0
+  F1 credibility:  0.7
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    0.75
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:7.125   penalty=0.0   final_score=7.125
+
+Signal  8: TSLA         SHORT  TIER=ACT_NOW
+  Poster:          carsonblock
+  Conviction lvl:  4  Argument: HIGH
+  Views:           68000   Reposts: 580   VPH: 5037.04
+  F1 credibility:  0.8
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    0.25
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:6.125   penalty=0.0   final_score=6.125
+
+Signal  9: SPY          NEUTRAL TIER=UNSCORED
+  Poster:          Yardeni
+  Conviction lvl:  1  Argument: LOW
+  Views:           5000   Reposts: 30   VPH: 344.82758620689657
+  F1 credibility:  0.0
+  F2a virality_abs:0.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    0.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:0.0   penalty=0.0   final_score=0.0
+
+Signal 10: SMCI         LONG   TIER=WATCH
+  Poster:          chamath
+  Conviction lvl:  3  Argument: MEDIUM
+  Views:           18000   Reposts: 180   VPH: 2666.67
+  F1 credibility:  0.6
+  F2a virality_abs:0.36   F2b virality_vel: 1.0 (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:5.5   penalty=0.0   final_score=5.5
+
+Signal 11: PARA         LONG   TIER=ACT_NOW
+  Poster:          ReformedBroker
+  Conviction lvl:  2  Argument: LOW
+  Views:           220000   Reposts: 2100   VPH: 14193.55
+  F1 credibility:  0.5
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:7.25   penalty=0.0   final_score=7.25
+
+Signal 12: GME_FLIP     SHORT  TIER=ACT_NOW  [DIRECTION_FLIP]
+  Poster:          DemoFlipper
+  Conviction lvl:  4  Argument: MEDIUM
+  Views:           60000   Reposts: 600   VPH: 7058.82
+  F1 credibility:  0.8
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:8.0   penalty=0.0   final_score=8.0
+
+Signal 13: DEMO_TSLA    LONG   TIER=ACT_NOW  [CONFLICT:opposing_exists]
+  Poster:          Bull1
+  Conviction lvl:  4  Argument: HIGH
+  Views:           65000   Reposts: 600   VPH: 8125.0
+  F1 credibility:  0.8
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:8.0   penalty=0.0   final_score=8.0
+
+Signal 14: DEMO_TSLA    LONG   TIER=ACT_NOW  [CONFLICT:opposing_exists]
+  Poster:          Bull2
+  Conviction lvl:  4  Argument: HIGH
+  Views:           65000   Reposts: 600   VPH: 8125.0
+  F1 credibility:  0.8
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:8.0   penalty=0.0   final_score=8.0
+
+Signal 15: DEMO_TSLA    SHORT  TIER=ACT_NOW  [CONFLICT:opposing_exists]
+  Poster:          BearX
+  Conviction lvl:  4  Argument: HIGH
+  Views:           70000   Reposts: 700   VPH: 8750.0
+  F1 credibility:  0.7
+  F2a virality_abs:1.0   F2b virality_vel: None (NULL for ACT_NOW)
+  F3 consensus:    1.0
+  F4 amplifier:    None (NULL until TASK-009)
+  F5 liquidity:    None (NULL until TASK-009)
+  conviction_score:7.75   penalty=0.0   final_score=7.75
+
+================================================================================
+SUMMARY
+================================================================================
+  ACT_NOW     : 11
+  UNSCORED    : 1
+  WATCH       : 3
+  direction_flip : 1
+  conflict_group : 3
+
+--- Direction-flip verification (GME_FLIP, DemoFlipper LONG→SHORT) ---
+  retained dir=SHORT  direction_flip=True  penalty=0.0  conviction=8.0  final=8.0
+  => final_score == conviction_score: True
+
+--- 3-poster mixed-direction verification (DEMO_TSLA, 2 LONG + 1 SHORT) ---
+  Bull1      LONG   tier=ACT_NOW  conflict_group=opposing_exists
+  Bull2      LONG   tier=ACT_NOW  conflict_group=opposing_exists
+  BearX      SHORT  tier=ACT_NOW  conflict_group=opposing_exists
