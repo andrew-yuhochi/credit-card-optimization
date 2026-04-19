@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 3 |
+| Done | 4 |
 | In Progress | 0 |
-| To Do | 15 |
+| To Do | 14 |
 | Blocked | 0 |
 
 ---
@@ -98,7 +98,7 @@
 > **Status**: To Do
 
 ### TASK-003: Turso-hosted SQLite schema + repository layer
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: architect (phase review), data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-001
