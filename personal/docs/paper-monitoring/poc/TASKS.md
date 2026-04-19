@@ -10,9 +10,9 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 ## Progress Summary
 | Status | Count |
 |--------|-------|
-| Done | 1 |
+| Done | 2 |
 | In Progress | 0 |
-| To Do | 16 |
+| To Do | 15 |
 | Blocked | 0 |
 
 **Milestone order is binding** per CLAUDE.md's three-stage prototype validation rule (manual prototype → automated sample → full extension). Do not start Milestone 2 before the user approves Milestone 1. Do not start Milestone 3 before the user approves Milestone 2.
@@ -58,7 +58,7 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 - **Notes**: This task is pure schema + CRUD. It has no user-visible effect on its own — the user-visible deliverable for Milestone 1 is TASK-M1-005 (Obsidian/Neo4j browsing). Per CLAUDE.md milestone rules, this task is an infrastructure task bundled inside the milestone whose first user-visible task is TASK-M1-005.
 
 ### TASK-M1-002: AI-propose 15 tree-based model concepts + relationships; user validates (ground truth)
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (generates proposals), user (reviews and approves)
 - **Complexity**: M
 - **Depends on**: TASK-M1-001
