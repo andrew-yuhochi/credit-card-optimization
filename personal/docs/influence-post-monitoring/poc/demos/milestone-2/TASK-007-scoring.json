@@ -1,0 +1,82 @@
+[
+  {
+    "account_handle": "BillAckman",
+    "post_text": "Fannie Mae is absurdly underpriced. This goes 10x when conservatorship ends.",
+    "score": {
+      "tickers": [
+        "FNMA"
+      ],
+      "direction": "LONG",
+      "conviction_level": 4,
+      "key_claim": "Fannie Mae is significantly undervalued and will appreciate substantially (10x) upon exit from government conservatorship.",
+      "argument_quality": "MEDIUM",
+      "time_horizon": "years",
+      "market_moving_potential": true,
+      "rationale": "High-profile investor making a specific directional claim with explicit valuation thesis (10x upside). Strong conviction language ('absurdly underpriced') and identifiable catalyst (conservatorship end). However, limited supporting detail provided. Conviction rated 4/5 due to specificity and known investor profile, though argument quality is medium due to lack of detailed justification. Time horizon is years given structural policy change required. Market-moving potential is true given Ackman's influence and FNMA's sensitivity to policy announcements."
+    }
+  },
+  {
+    "account_handle": "michaeljburry",
+    "post_text": "NFLX subscriber growth is decelerating fast. Guidance miss coming.",
+    "score": {
+      "tickers": [
+        "NFLX"
+      ],
+      "direction": "SHORT",
+      "conviction_level": 4,
+      "key_claim": "Netflix subscriber growth is decelerating rapidly and the company will miss upcoming guidance targets.",
+      "argument_quality": "MEDIUM",
+      "time_horizon": "weeks",
+      "market_moving_potential": true,
+      "rationale": "High-conviction bearish claim from a notable investor on a mega-cap stock with significant market sensitivity. The assertion is specific (deceleration + guidance miss) rather than vague. However, the argument lacks detailed supporting evidence or data points, which prevents maximum conviction scoring. The timing reference to 'coming' guidance suggests near-term relevance (weeks). This type of signal from this account holder could move NFLX >2% given their track record and influence."
+    }
+  },
+  {
+    "account_handle": "DanielSLoeb1",
+    "post_text": "Apple services revenue acceleration is deeply underappreciated by the market.",
+    "score": {
+      "tickers": [
+        "AAPL"
+      ],
+      "direction": "LONG",
+      "conviction_level": 2,
+      "key_claim": "Apple's services revenue is accelerating faster than market consensus recognizes, suggesting the stock is undervalued on this segment.",
+      "argument_quality": "LOW",
+      "time_horizon": "unspecified",
+      "market_moving_potential": false,
+      "rationale": "This is a casual thematic observation without specific data points, catalysts, or time frame. While it expresses a bullish view on AAPL services growth, it lacks actionable specificity (no quantitative claims, no timeline, no price target). The phrase 'deeply underappreciated' is qualitative sentiment rather than investment thesis with supporting evidence. Low conviction due to lack of concrete supporting claims or urgency. Unlikely to move markets without additional context or data."
+    }
+  },
+  {
+    "account_handle": "GavinSBaker",
+    "post_text": "NOVA's residential solar economics improve materially as rates come down.",
+    "score": {
+      "tickers": [
+        "NOVA"
+      ],
+      "direction": "LONG",
+      "conviction_level": 2,
+      "key_claim": "NOVA's residential solar business economics improve as interest rates decline, making solar financing more attractive to consumers.",
+      "argument_quality": "MEDIUM",
+      "time_horizon": "months",
+      "market_moving_potential": false,
+      "rationale": "The post identifies a fundamental positive driver for NOVA (likely Sunnova Energy International) tied to macro interest rate trends. However, the statement is relatively high-level macroeconomic commentary rather than a specific investment call or new catalyst. No urgent catalyst or specific price target is mentioned. Conviction is moderate as this reflects general industry dynamics rather than a surprising insight or company-specific catalyst. The relationship between rates and solar demand is well-established, limiting novelty."
+    }
+  },
+  {
+    "account_handle": "WallStCynic",
+    "post_text": "RIVN is burning cash at a rate that is simply not sustainable.",
+    "score": {
+      "tickers": [
+        "RIVN"
+      ],
+      "direction": "SHORT",
+      "conviction_level": 2,
+      "key_claim": "Rivian is unsustainably burning cash, implying financial distress and potential value destruction.",
+      "argument_quality": "LOW",
+      "time_horizon": "unspecified",
+      "market_moving_potential": false,
+      "rationale": "While the post expresses a bearish view on RIVN's cash burn, it provides no specific metrics, comparisons, timelines, or novel information. The claim is a general observation that has been widely discussed regarding Rivian. Low conviction reflects lack of concrete supporting details, and no immediate market-moving catalyst is evident. The vague nature and absence of quantitative backing limit impact."
+    }
+  }
+]

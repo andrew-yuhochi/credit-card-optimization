@@ -2,7 +2,7 @@
 
 > **Status**: Active
 > **Phase**: PoC
-> **Last Updated**: 2026-04-18
+> **Last Updated**: 2026-04-19
 > **Depends on**: PRD.md, TDD.md, DATA-SOURCES.md (all drafted 2026-04-18)
 > **Supersedes**: 2026-04-17 TASKS.md (email-based 20-task PoC — fully rebuilt)
 
@@ -12,7 +12,7 @@
 |--------|-------|
 | Done | 6 |
 | In Progress | 0 |
-| To Do | 12 |
+| To Do | 13 |
 | Blocked | 0 |
 
 ---
@@ -103,7 +103,7 @@
 - **Complexity**: Medium
 - **Depends on**: TASK-001
 - **Context**: Schema from TDD §2.4 with multi-tenant `user_id`+`tenant_id` on every table. The `signals` table is the commercial asset — every sub-score column (F1–F5 plus outcome columns) must exist from day one, even those filled by later tasks. Turso free tier is the cloud host; `libsql-client` is a drop-in replacement for sqlite3. Local `data/signals.db` fallback when `TURSO_URL` is unset.
-- **Description**: Create `db/schema.sql` with all CREATE TABLE from TDD §2.4 (tenants, users, accounts, posts, engagement_snapshots, retweeters, price_cache, scoring_config, signals, messages_sent, daily_summaries, api_usage). Implement `db/repository.py` with `SignalRepository` — connection management (Turso or local SQLite via `libsql_client`), and all read/write methods referenced by later tasks. Implement `--init` CLI flag that creates schema, seeds the default tenant, the default user (from `.env` `RECIPIENT_PHONE_E164`), all 45 accounts from `config/accounts.json`, and `scoring_config` from `config/scoring_config_seed.json`. Also create `tests/fixtures/sample_signals.json` (10 pre-scored, pre-classified signal records covering all key rendering scenarios) and `tests/fixtures/sample_outcomes.json` (same records with outcome data populated). These fixture files are the basis for `--use-fixtures` mode in the orchestrators (TASK-010, TASK-013) — allowing deliverables to be tested without real overnight signals.
+- **Description**: Create `db/schema.sql` with all CREATE TABLE from TDD §2.4 (tenants, users, accounts, posts, engagement_snapshots, retweeters, price_cache, scoring_config, signals, messages_sent, daily_summaries, api_usage). Implement `db/repository.py` with `SignalRepository` — connection management (Turso or local SQLite via `libsql_client`), and all read/write methods referenced by later tasks. Implement `--init` CLI flag that creates schema, seeds the default tenant, the default user (from `.env` `RECIPIENT_PHONE_E164`), all 45 accounts from `config/accounts.json`, and `scoring_config` from `config/scoring_config_seed.json`. Also create `tests/fixtures/sample_signals.json` (10 pre-scored, pre-classified signal records covering all key rendering scenarios) and `tests/fixtures/sample_outcomes.json` (same records with outcome data populated). These fixture files are the basis for `--use-fixtures` mode in the orchestrators (TASK-010b, TASK-013) — allowing deliverables to be tested without real overnight signals.
 - **Acceptance Criteria**:
   - [ ] `schema.sql` creates all 11 tables from TDD §2.4
   - [ ] `accounts`, `posts`, `signals`, `messages_sent`, `daily_summaries`, `users`, `scoring_config` all have `user_id` (where applicable) AND `tenant_id` columns defaulting to 1
@@ -159,9 +159,10 @@
 - **Acceptance Criteria**:
   - [ ] Uses `pandas_market_calendars.get_calendar("NYSE")`
   - [ ] `is_trading_day(date(2026, 7, 4))` returns `False` (Independence Day)
-  - [ ] `is_trading_day(date(2026, 4, 18))` returns `False` (Good Friday)
+  - [ ] `is_trading_day(date(2026, 4, 18))` returns `False` (Saturday)
+  - [ ] `is_trading_day(date(2026, 4, 3))` returns `False` (Good Friday 2026)
   - [ ] `previous_trading_day(date(2026, 4, 20))` returns `2026-04-17` (Monday → prior Thursday, Fri was Good Friday)
-  - [ ] `collection_window(datetime(2026, 4, 21, 9, 0, tz=ET))` returns `(prev_close_datetime, send_datetime)` with prev_close = 2026-04-17 16:00 ET (Friday 4/17 was a trading day)
+  - [ ] `collection_window(datetime(2026, 4, 21, 9, 0, tz=ET))` returns `(prev_close_datetime, send_datetime)` with prev_close = 2026-04-20 16:00 ET
   - [ ] `trading_days_after(date(2026, 1, 1), 5)` correctly skips weekends and MLK Day
   - [ ] Unit tests: weekend crossing, Good Friday, Memorial Day, Thanksgiving, Christmas, day-after-Thanksgiving early close (not handled at PoC — close = 16:00 always; documented)
 - **Demo Artifact**: Python REPL output showing 10 representative date queries (weekends, holidays, prev_close at month-boundaries), saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-005-calendar.txt`.
@@ -189,36 +190,53 @@
 - **Notes**: Cache the Yahoo Finance name→ticker lookups in a per-process dict to avoid repeated API calls within a single run.
 
 ### TASK-007: Claude Haiku client + directional scoring
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-001
-- **Context**: Claude Haiku is the most expensive external dep (~$0.25/month) but produces the conviction-level and direction classification. Pydantic validation of every response is mandatory — parse failures return a zero-score sentinel rather than crashing. System prompt lives in `config/prompts/scoring_prompt.txt` (DATA-SOURCES.md §Source 5), not in code.
-- **Description**: Implement `scoring/llm_client.py` (`LLMClient` ABC, `PostScore` Pydantic model per DATA-SOURCES.md §Source 5). Implement `scoring/claude_client.py` (`ClaudeHaikuClient` — reads prompt from file, calls `anthropic.Anthropic`, Pydantic-validates response, logs to `api_usage` table, retries once on `APIError`, sentinel on parse fail).
+- **Context**: Claude Haiku is the most expensive external dep (~$0.25/month) but produces the conviction-level and direction classification. Pydantic validation of every response is mandatory — parse failures return a zero-score sentinel rather than crashing. System prompt lives in `config/prompts/scoring_prompt.txt` (DATA-SOURCES.md §Source 5), not in code. **Important:** `llm_client.py` (`LLMClient` ABC + `PostScore` Pydantic model) already exists from a prior cut. `claude_client.py` also exists with ~158 lines but contains a wiring bug — it calls `await self._repo.log_api_usage(...)` against the current **synchronous** repository. This task rewrites `claude_client.py` to call the sync method directly (no asyncio) and verifies prompt loading against the current prompt file.
+- **Description**: The existing `scoring/claude_client.py` must be rewritten (not created from scratch). Remove all `async`/`await` — `SignalRepository` is synchronous. Retain the existing prompt-loading, Pydantic validation, sentinel logic, and retry logic; only fix the sync/async mismatch and align the `PostScore` model with current TDD §2.3. Verify `scoring/llm_client.py` already exposes `LLMClient` ABC + `PostScore` Pydantic model with fields (`tickers`, `direction`, `conviction_level`, `key_claim`, `argument_quality`, `time_horizon`, `market_moving_potential`, `rationale`) and `zero_sentinel()` classmethod — if schema has drifted from DATA-SOURCES.md §Source 5, update it. Rewrite `scoring/claude_client.py` (`ClaudeHaikuClient`) to: read prompt once from `config/prompts/scoring_prompt.txt`, call `anthropic.Anthropic(api_key=settings.anthropic_api_key).messages.create(...)`, Pydantic-validate response, log to `api_usage` via the **synchronous** `repo.log_api_usage(...)` call (no asyncio.get_event_loop), retry once on `anthropic.APIError` after 5s, return `PostScore.zero_sentinel()` on parse/validation fail. Remove the existing `async`/`await` wrapping around `_log_usage`.
+- **Implementation Checklist**:
+  - **Schema**: `api_usage` row with columns `provider`, `endpoint`, `input_tokens`, `output_tokens`, `latency_ms`, `status`, `error_message` — all already exist in `schema.sql` (lines 227-237). No additions.
+  - **Wire**: rewrite existing file at `scoring/claude_client.py` — do not create new. `ClaudeHaikuClient` is instantiated inside the TASK-010b `PipelineOrchestrator.__init__` and its `score_post(post.text, post.author_handle)` is called from the morning pipeline step 5. No wiring in this task — TASK-010b does the wiring.
+  - **Call site**: N/A (this task produces the class; callers appear in TASK-008 tests and TASK-010b orchestrator).
+  - **Imports affected**: any caller using async interface must be updated — no caller may `await client.score_post(...)` or `await client._log_usage(...)`. `scoring/claude_client.py` currently imports `DatabaseRepository` (line 19) — OK, `DatabaseRepository` is aliased to `SignalRepository` in `db/repository.py` line 619. Keep either name but prefer `SignalRepository` for consistency with TASK-003 and TASK-004. If renamed, update imports in: `scoring/claude_client.py`, any test file that imports `ClaudeHaikuClient` — currently only `tests/test_llm_client.py` (verify).
+  - **Runtime files**: `config/prompts/scoring_prompt.txt` — **exists** (16 lines). The existing file at that path must remain and match the schema in DATA-SOURCES.md §Source 5 — verify the JSON schema description in the prompt still asks for the 8 `PostScore` fields; if not, update the prompt before writing tests.
 - **Acceptance Criteria**:
-  - [ ] `LLMClient` ABC defines `score_post(post_text, author_handle) -> PostScore`
+  - [ ] `LLMClient` ABC defines `score_post(post_text, author_handle) -> PostScore` and `model_version() -> str`
   - [ ] `PostScore` validates `tickers`, `direction`, `conviction_level` (0–5), `key_claim`, `argument_quality`, `time_horizon`, `market_moving_potential`, `rationale`
-  - [ ] System prompt read from `config/prompts/scoring_prompt.txt` (not inline)
-  - [ ] Model: `claude-haiku-4-5` or latest Haiku
-  - [ ] On Pydantic fail: logs raw response WARNING, returns sentinel (`conviction_level=0`, `direction="AMBIGUOUS"`, empty lists)
-  - [ ] On `APIError`: retries once after 5s; sentinel on second fail
-  - [ ] Every call logged to `api_usage` with `provider='anthropic'`, latency_ms, tokens, status
-  - [ ] Integration test: score 5 real posts and verify all return valid `PostScore`; zero parse errors
+  - [ ] System prompt read from `config/prompts/scoring_prompt.txt` at `ClaudeHaikuClient.__init__` time, not inline, not per-call
+  - [ ] Model: `claude-haiku-4-5-20251001` (or the latest Haiku release as pinned in the constant at the top of `claude_client.py`)
+  - [ ] On Pydantic fail: logs raw response WARNING (truncated to first 500 chars), returns `PostScore.zero_sentinel()` (`conviction_level=0`, `direction="AMBIGUOUS"`, empty `tickers`)
+  - [ ] On `anthropic.APIError`: retries once after 5s; `zero_sentinel()` on second fail
+  - [ ] Every call logged to `api_usage` with `provider='anthropic'`, `endpoint=<model_name>`, `latency_ms`, `input_tokens`, `output_tokens`, `status` — via **synchronous** `repo.log_api_usage(...)` (no `asyncio.get_event_loop`, no `await`)
+  - [ ] No `async`/`await` anywhere in `claude_client.py` — all calls to `SignalRepository` are synchronous
+  - [ ] `claude_client.py` has zero references to `asyncio`, `await`, or `loop.create_task` (sync-only)
+  - [ ] Unit tests cover: valid JSON response → PostScore parsed; markdown-fenced JSON → unwrapped + parsed; malformed JSON → zero_sentinel + WARNING; APIError → retry → success on 2nd; APIError twice → zero_sentinel; every path hits `repo.log_api_usage` exactly once (asserted with mock)
+  - [ ] Integration test (requires `ANTHROPIC_API_KEY`): score 5 real posts; all return valid `PostScore`; zero parse errors; 5 rows in `api_usage` with `status='ok'`
 - **Demo Artifact**: Output of scoring 5 fixture posts (including the FNMA Ackman example) with PostScore serialized as JSON, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-007-scoring.json`.
-- **Notes**: Store `llm_model_version`, raw response, token counts on every `signals` row for MVP audit and re-scoring.
+- **Notes**: Store `llm_model_version`, raw response, token counts on every `signals` row for MVP audit and re-scoring (the `signals` table already has `llm_model_version`, `llm_raw_response`, `llm_input_tokens`, `llm_output_tokens` columns — these are populated by TASK-008, not this task).
 
 ### TASK-008: Five-factor scoring engine + conflict resolver + signal classifier
 - **Status**: To Do
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: High
 - **Depends on**: TASK-003, TASK-006, TASK-007
-- **Context**: The scoring engine combines Claude's output with the credibility seed (F1), virality (F2a/F2b), consensus (F3), amplifier (F4 — only for Act Now, see TASK-009), and liquidity (F5). All weights read from `scoring_config` table (not hardcoded). Conflict resolver handles same-poster repeats/flips and multi-poster mixed-direction splits per PRD §6.12. Classifier assigns ACT_NOW / WATCH / UNSCORED using virality thresholds.
-- **Description**: Implement `scoring/scoring_engine.py` (`ScoringEngine` loads weights from `scoring_config`; computes F1..F5 and composite conviction_score). Implement `scoring/conflict_resolver.py` (same-poster highest-virality selection for same-direction repeats; most-recent + `direction_flip=True` + penalty for same-poster flips; per-direction signal emission with `conflict_group='opposing_exists'` for 3+ posters mixed direction). Implement `scoring/classifier.py` (thresholds from `scoring_config`; `classify(post) -> 'ACT_NOW' | 'WATCH' | 'UNSCORED'`). Persist all factor scores individually on the `signals` row.
+- **Context**: The scoring engine combines Claude's output with the credibility seed (F1), virality (F2a/F2b), consensus (F3), amplifier (F4 — only for Act Now, see TASK-009), and liquidity (F5). All weights read from `scoring_config` table (not hardcoded). Conflict resolver handles same-poster repeats/flips and multi-poster mixed-direction splits per PRD §6.12. Classifier assigns ACT_NOW / WATCH / UNSCORED using virality thresholds. **Important:** the current `scoring/scoring_engine.py` (187 lines) is a LEGACY 5-component engine (credibility/conviction/argument/engagement/historical) from the old email-based PoC — it must be fully rewritten. Legacy `scoring/corroboration.py` (102 lines) and `scoring/aggregator.py` (58 lines) implement a different consensus model and must be DELETED in this task (their roles are subsumed by the new F3 consensus factor + ConflictResolver). The stubs `scoring/conflict_resolver.py`, `scoring/classifier.py`, `scoring/amplifier.py` are all 1-line placeholders awaiting implementation.
+- **Description**: Before implementing the new engine, delete legacy files: `influence_monitor/scoring/scoring_engine.py` (old 5-component model), `influence_monitor/scoring/corroboration.py`, `influence_monitor/scoring/aggregator.py`. These are replaced entirely by `ScoringEngine` + `ConflictResolver`. Rewrite `scoring/scoring_engine.py` — new `ScoringEngine` class that accepts weights from `scoring_config` (5 keys: `weight_credibility`, `weight_virality_abs`, `weight_virality_vel`, `weight_consensus`, `weight_amplifier`), computes F1..F5 and composite `conviction_score`, persists all sub-scores. Implement `scoring/conflict_resolver.py` (same-poster highest-virality selection for same-direction repeats; most-recent + `direction_flip=True` + penalty for same-poster flips; per-direction signal emission with `conflict_group='opposing_exists'` for 3+ posters mixed direction). Implement `scoring/classifier.py` (thresholds from `scoring_config`: `virality_views_threshold`, `virality_reposts_threshold`, `watch_velocity_floor`; `classify(post) -> 'ACT_NOW' | 'WATCH' | 'UNSCORED'`). Persist all factor scores individually on the `signals` row via `repo.insert_signal(**kwargs)`.
+- **Implementation Checklist**:
+  - **Schema**: `signals` row will populate these columns (all EXIST in `schema.sql` lines 129-187): `score_credibility`, `score_virality_abs`, `score_virality_vel`, `score_consensus`, `score_amplifier`, `liquidity_modifier`, `conviction_score`, `direction_flip`, `conflict_group`, `penalty_applied`, `final_score`, `tier`, `morning_rank`, `llm_model_version`, `llm_raw_response`, `llm_input_tokens`, `llm_output_tokens`, `extraction_confidence`, `direction`, `conviction_level`, `argument_quality`, `time_horizon`, `market_moving_potential`, `key_claim`, `rationale`, `market_cap_class`, `engagement_views`, `engagement_reposts`, `views_per_hour`, `ticker`. All present. No schema changes.
+  - **Wire**: `ScoringEngine` is instantiated in TASK-010b `PipelineOrchestrator.__init__` and called at morning pipeline step 6 (build signals, F1/F2/F3/F5). `ConflictResolver` called at step 7. `Classifier` called at step 8. F4 (amplifier) is wired by TASK-009. Every factor-scoring call must round-trip through `repo.insert_signal(**kwargs)` with ALL factor columns populated as kwargs (the repo method is generic `**kwargs`, so unknown columns silently go into the INSERT — do NOT rely on that; pass only known columns).
+  - **Call site**: The old `SignalAggregator.rank()` and `CorroborationDetector.detect_and_tag()` are called from `pipeline.py` lines 460-461 — those callers will be removed when TASK-010a reduces `pipeline.py` to a stub (and TASK-010b writes the new orchestrator). No intermediate shim is needed.
+  - **Imports affected**: grep for imports of `corroboration`, `aggregator`, `ScoringEngine` (old) across the codebase and remove/update them; `pipeline.py` imports these — note it will be fully replaced in TASK-010b so stale imports there are acceptable until then. **Renames/deletions**: `SignalAggregator`, `CorroborationDetector`, legacy `Signal` dataclass, legacy `ScoredSignal` dataclass. Files that currently import these and MUST be updated: `influence_monitor/pipeline.py` (lines 50-52 — will be replaced in TASK-010b; stale imports there are acceptable until TASK-010b), `tests/test_corroboration.py` (DELETE this test file — no replacement needed; ConflictResolver has its own test), `tests/test_scoring_engine.py` (REWRITE — asserts change entirely for F1..F5 model). Also update `scoring/claude_client.py` no-op (doesn't import these). Verify via `grep -r "CorroborationDetector\|SignalAggregator"` before finalizing.
+  - **Runtime files**: Reads `scoring_config` from DB (seeded by TASK-003 — already Done). No file I/O beyond the DB.
 - **Acceptance Criteria**:
-  - [ ] `ScoringEngine` loads weights from `scoring_config` table (not hardcoded)
-  - [ ] All five sub-scores (F1 credibility, F2a virality_abs, F3 consensus, F4 amplifier, F5 liquidity) computed and persisted to `signals`
+  - [ ] Legacy files deleted: `scoring/corroboration.py`, `scoring/aggregator.py`; `scoring/scoring_engine.py` replaced (not amended) with new F1–F5 implementation
+  - [ ] `scoring/corroboration.py` and `scoring/aggregator.py` **deleted**; no remaining imports of `CorroborationDetector`, `SignalAggregator`, or legacy `Signal`/`ScoredSignal` dataclasses anywhere in `influence_monitor/` or `tests/` (except files being rewritten)
+  - [ ] `ScoringEngine` loads weights from `scoring_config` table via `repo.get_scoring_config(tenant_id=1)` (synchronous); keys: `weight_credibility`, `weight_virality_abs`, `weight_virality_vel`, `weight_consensus`, `weight_amplifier`
+  - [ ] All five sub-scores (F1 credibility, F2a virality_abs, F3 consensus, F4 amplifier, F5 liquidity) computed; the non-applicable tier's optional factors are left as `None` on the persisted row (e.g., F2b virality_vel is NULL for ACT_NOW; F4 amplifier is NULL until TASK-009 populates it)
   - [ ] F2b (virality_vel) computed only for WATCH tier; F4 (amplifier) populated only for ACT_NOW after TASK-009
-  - [ ] `conviction_level < 2` or `direction in ["NEUTRAL", "AMBIGUOUS"]` → `conviction_score = 0`, `tier = 'UNSCORED'`
+  - [ ] `conviction_level < 2` or `direction in ["NEUTRAL", "AMBIGUOUS"]` → `conviction_score = 0`, `tier = 'UNSCORED'`, all F-scores = 0
   - [ ] `ConflictResolver`: same-poster repeats → highest-virality retained, others dropped
   - [ ] `ConflictResolver`: same-poster flip → `direction_flip=True` (always set), `penalty_applied = scoring_config.direction_flip_penalty` (default 0.0 — tag-only at PoC, non-zero values immediately activate penalty deduction with no code change), most-recent retained
   - [ ] Test case: with `direction_flip_penalty=0.0` (default), a flipped signal renders the `⚠️ Direction changed` tag but its `final_score == conviction_score` (no deduction)
@@ -228,51 +246,93 @@
   - [ ] `classify` returns WATCH when below threshold but `views_per_hour >= watch_velocity_floor`
   - [ ] Unit tests: single post scoring, same-poster repeat, same-poster flip, 3-poster mixed, threshold crossings, all weights DB-driven
 - **Demo Artifact**: Output of scoring 6 fixture posts (including one flip scenario and one 3-poster mixed scenario) showing all factor scores, tier assignment, and conflict handling, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-008-scoring.txt`.
-- **Notes**: ScoringEngine must be pure — receives `PostScore` + `RawPost` + account credibility, does not call external services. Testable in isolation.
+- **Notes**: ScoringEngine must be pure — receives `PostScore` + `RawPost` + account credibility, does not call external services. Testable in isolation. Legacy tests `test_corroboration.py` and the existing `test_scoring_engine.py` assertion body must be removed or rewritten; the test-validator pass should surface any stale asserts.
 
 ### TASK-009: Amplifier fetcher + market-cap resolver
 - **Status**: To Do
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-004, TASK-008
-- **Context**: Amplifier quality (F4) is fetched only for ACT_NOW candidates (~5–10/day) to respect twikit rate limits. Each retweeter is persisted in the `retweeters` table at fetch time (amplifier regression dataset for MVP). Cross-reference with the `accounts` table — any monitored account in the retweeter list = strong signal. Market-cap resolver uses `finvizfinance` with a weekly cache in the `price_cache` table.
-- **Description**: Implement `scoring/amplifier.py` (`AmplifierFetcher.fetch_and_score(post, source)` → calls `source.fetch_retweeters`, persists all to `retweeters` with `is_monitored` set by cross-ref against `accounts`; applies the TDD §2.3 formula: `min(10, monitored_count*3 + high_follower_count*1.5 + mid_follower_count*0.5)` with tiers from `scoring_config`). Implement `market_data/market_cap_resolver.py` (`MarketCapResolver.resolve(ticker)` → `price_cache` hit within 7 days returns cached; else finvizfinance call + insert; on failure returns `"Micro"`). Map cap class to liquidity modifier (0.8× Mega / 0.9× Large / 1.0× Mid / 1.15× Small / 1.3× Micro) from `scoring_config`.
+- **Context**: Amplifier quality (F4) is fetched only for ACT_NOW candidates (~5–10/day) to respect twikit rate limits. Each retweeter is persisted in the `retweeters` table at fetch time (amplifier regression dataset for MVP). Cross-reference with the `accounts` table — any monitored account in the retweeter list = strong signal. Market-cap resolver uses `finvizfinance` with a weekly cache in the `price_cache` table. **Important:** both `scoring/amplifier.py` and `market_data/market_cap_resolver.py` are currently 1-line stubs awaiting implementation. The legacy `market_data/index_resolver.py` (208 lines) is NOT a substitute for `MarketCapResolver` — it's a separate S&P/Russell membership tier classifier from the old design; leave it alone in this task but it will need to be deleted or deprecated by TASK-010a.
+- **Description**: Implement `scoring/amplifier.py` (`AmplifierFetcher.fetch_and_score(post, source)` → calls `source.fetch_retweeters`, persists all to `retweeters` with `is_monitored` set by cross-ref against `accounts`; applies the TDD §2.3 formula: `min(10, monitored_count*3 + high_follower_count*1.5 + mid_follower_count*0.5)` with tiers from `scoring_config`). Implement `market_data/market_cap_resolver.py` (`MarketCapResolver.resolve(ticker)` → `price_cache` hit within 7 days returns cached; else finvizfinance call + insert; on failure returns `"Micro"`). Map cap class to liquidity modifier (0.8× Mega / 0.9× Large / 1.0× Mid / 1.15× Small / 1.3× Micro) from `scoring_config`. Also add two new methods to `SignalRepository`: `get_cached_market_cap(ticker) -> float | None` and `upsert_price_cache(ticker, market_cap, fetched_at)`. Add two missing `scoring_config` seed rows: `amplifier_high_follower_tier` (value: `100000`) and `amplifier_mid_follower_tier` (value: `10000`). Update the seed count assertion in `tests/test_repository.py::test_scoring_config_seed_count` from 17 to 19.
+- **Implementation Checklist**:
+  - **Schema**: `retweeters` table has columns `post_id`, `retweeter_external_id`, `retweeter_handle`, `followers_count`, `is_verified`, `is_monitored`, `fetched_at` (schema.sql lines 85-97) — all present. `price_cache` table has `ticker`, `market_cap_b`, `market_cap_class`, `sector`, `industry`, `last_updated` (lines 100-108) — all present. No schema changes.
+  - **Wire**: `AmplifierFetcher` is called from TASK-010b `PipelineOrchestrator.run_morning()` step 9 — **only** for signals classified as `ACT_NOW` by TASK-008 Classifier. `MarketCapResolver` is called from TASK-010b orchestrator step 6 (ScoringEngine F5 computation) — for EVERY signal, not just ACT_NOW, because liquidity_modifier applies to the composite conviction score regardless of tier. Both wirings live in TASK-010b's orchestrator; this task exposes the classes only.
+  - **Call site**: N/A (no callers yet — TASK-010b adds them).
+  - **Imports affected**: `AmplifierFetcher` consumes `SocialMediaSource` from `ingestion/base.py` (already defines `fetch_retweeters`) and calls `repo.insert_retweeter(...)` (already implemented in `repository.py` line 404). `MarketCapResolver` takes the repo in its constructor and calls a new method `repo.get_cached_market_cap(ticker, max_age_days=7) -> dict | None` and `repo.upsert_price_cache(ticker, market_cap_b, market_cap_class, sector, industry)` — **these two methods do NOT yet exist in `repository.py`** and must be added as part of this task (NEW repo methods).
+  - **Runtime files**: `scoring_config` seed rows `liq_mega`, `liq_large`, `liq_mid`, `liq_small`, `liq_micro` already present (seeded by TASK-003 — verified against `config/scoring_config_seed.json`). Follower-tier thresholds `amplifier_high_follower_tier` and `amplifier_mid_follower_tier` are NOT in the current 17 seeded keys — the TDD-aligned default thresholds (high=100000, mid=10000) must be either (a) hardcoded with a comment pointing to where to add to seed later, or (b) added to `config/scoring_config_seed.json` as 2 new keys and the seeded-count assertion in TASK-003's test updated from 17 → 19. **Decision: add to seed.** Update `config/scoring_config_seed.json` + the count check in `tests/test_repository.py::test_scoring_config_seed_count` accordingly.
 - **Acceptance Criteria**:
   - [ ] `AmplifierFetcher.fetch_and_score(post, source)` fetches up to ~100 retweeters via `source.fetch_retweeters`
-  - [ ] All retweeters persisted to `retweeters` table with `is_monitored` flag set by cross-ref against `accounts`
+  - [ ] All retweeters persisted to `retweeters` table via `repo.insert_retweeter(...)` with `is_monitored` flag set by cross-ref against `accounts.external_id`
   - [ ] Amplifier score in [0, 10] per TDD §2.3 formula
   - [ ] Called only for ACT_NOW signals (gated in `PipelineOrchestrator`, enforced in tests)
   - [ ] `MarketCapResolver.resolve` returns one of: Mega, Large, Mid, Small, Micro
-  - [ ] 7-day cache in `price_cache`; cache miss calls finvizfinance
-  - [ ] finvizfinance failure returns `"Micro"` + WARNING log
+  - [ ] 7-day cache via new `repo.get_cached_market_cap` / `repo.upsert_price_cache` methods in `price_cache`; cache miss calls finvizfinance
+  - [ ] finvizfinance failure returns `"Micro"` + WARNING log (does not raise)
   - [ ] Market-cap string parsing: `"3911.50B"` → 3_911_500 (millions); `"498.22M"` → 498; `""` → None → Micro
-  - [ ] Liquidity modifier applied to conviction_score per class
-  - [ ] Unit tests: amplifier formula with 0/1/3 monitored matches; cap-class parsing edge cases; cache hit/miss
+  - [ ] Liquidity modifier applied to conviction_score per class (read from `scoring_config.liq_mega` etc.)
+  - [ ] Unit tests: amplifier formula with 0/1/3 monitored matches; cap-class parsing edge cases; cache hit/miss; finvizfinance failure fallback
+  - [ ] `config/scoring_config_seed.json` grows by 2 keys (`amplifier_high_follower_tier=100000`, `amplifier_mid_follower_tier=10000`); `tests/test_repository.py::test_scoring_config_seed_count` updated from 17 → 19
 - **Demo Artifact**: DB dump showing `retweeters` rows from a real Act Now Ackman post + the computed `score_amplifier`, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-009-amplifier.txt`.
 - **Notes**: Follower tier thresholds (high 100K+, mid 10K-50K) are in `scoring_config` and configurable.
 
-### TASK-010: Morning pipeline orchestrator (end-to-end 3-account demo)
+### TASK-010a: Legacy pipeline cleanup (delete email/calendar/scorecard/index_resolver)
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
+- **Depends on**: TASK-007, TASK-008, TASK-009
+- **Context**: Before the new orchestrator can be written (TASK-010b), the legacy code it would collide with must be removed. The current `influence_monitor/pipeline.py` (603 lines) is a fully async email-based orchestrator that imports from `influence_monitor.email.*`, `influence_monitor.calendar`, `CorroborationDetector`, `SignalAggregator`, `IndexMembershipResolver`, and `ScorecardEngine`. Leaving this file in place while TASK-010b is written risks collisions on common module paths and confused imports. This task performs the deletion pass AND reduces `pipeline.py` to a thin, non-functional stub (a single `main()` that raises `NotImplementedError("TASK-010b")`) so that `pytest` collection still runs and the repo imports still resolve. This is a pure-removal task — no new pipeline behavior is introduced here.
+- **Description**: DELETE `influence_monitor/email/` directory (base.py, sendgrid_provider.py, resend_provider.py, registry.py, renderer.py, and any others). DELETE `influence_monitor/calendar.py` (the correct calendar is `market_data/trading_calendar.py`). DELETE `influence_monitor/scorecard/` directory (legacy; the new scorecard lives in TASK-012's `outcome/scorecard_aggregator.py`). DELETE `influence_monitor/market_data/index_resolver.py` (legacy; not in current TDD). DELETE legacy test files that target the removed modules: `tests/test_email_provider.py`, `tests/test_index_resolver.py`, `tests/test_scorecard_engine.py`. REWRITE `influence_monitor/pipeline.py` to a stub — remove all legacy imports and classes, leave a single `main()` that logs `"pipeline orchestrator not yet implemented — see TASK-010b"` and raises `NotImplementedError`. Mark legacy test files `tests/test_pipeline.py` and `tests/test_integration.py` with a module-level `pytest.skip(allow_module_level=True)` and a `# TASK-010b: rewrite` comment; do NOT delete these yet — TASK-010b will rewrite them against the new orchestrator. After this task, `pytest` must collect and run cleanly with the two skipped modules and no import errors anywhere in the package.
+- **Implementation Checklist**:
+  - **Schema**: No schema changes.
+  - **Wire**: No new wiring. The stub `pipeline.py` exposes only `main()` that raises `NotImplementedError`.
+  - **Call site**: No callers in PoC code (GitHub Actions wiring is TASK-014, after TASK-010b).
+  - **Imports affected**: **Deletions**: `influence_monitor.email.*`, `influence_monitor.calendar.HolidayCalendar/_easter/_nyse_holidays/_observe`, `influence_monitor.scorecard.*`, `influence_monitor.market_data.index_resolver.IndexMembershipResolver`. **Test files DELETED**: `tests/test_email_provider.py`, `tests/test_index_resolver.py`, `tests/test_scorecard_engine.py`. **Test files SKIPPED (not deleted, rewritten in TASK-010b)**: `tests/test_pipeline.py`, `tests/test_integration.py`. Verify with `grep -rn "influence_monitor.email\|influence_monitor.calendar\|influence_monitor.scorecard\|IndexMembershipResolver\|HolidayCalendar"` — only matches allowed after this task are inside the two skipped test modules (which TASK-010b will rewrite) and the TASKS.md/PRD.md/TDD.md docs.
+  - **Runtime files**: None written, none read at runtime (stub only).
+- **Acceptance Criteria**:
+  - [ ] `influence_monitor/email/` directory removed
+  - [ ] `influence_monitor/calendar.py` removed
+  - [ ] `influence_monitor/scorecard/` directory removed
+  - [ ] `influence_monitor/market_data/index_resolver.py` removed
+  - [ ] `tests/test_email_provider.py`, `tests/test_index_resolver.py`, `tests/test_scorecard_engine.py` deleted
+  - [ ] `tests/test_pipeline.py` and `tests/test_integration.py` marked `pytest.skip(allow_module_level=True)` with `# TASK-010b: rewrite` comment
+  - [ ] `influence_monitor/pipeline.py` reduced to a stub `main()` that raises `NotImplementedError("TASK-010b")`
+  - [ ] `pytest` collects and runs cleanly: no `ImportError`, no `ModuleNotFoundError`, two collected-but-skipped modules
+  - [ ] `grep -rn "from influence_monitor.email\|from influence_monitor.calendar\|from influence_monitor.scorecard\|IndexMembershipResolver\|HolidayCalendar\|CorroborationDetector\|SignalAggregator" influence_monitor/` returns no matches (production code is clean of legacy references)
+- **Demo Artifact**: `git log --stat` output showing the deletions + a clean `pytest -q` transcript with the two expected skips, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010a-cleanup.txt`.
+- **Notes**: This is a surgical deletion task — no new behavior. It exists as its own task so that TASK-010b begins against a clean codebase and so the deletion diff is reviewable independently of the new-orchestrator diff (which is large). If test-validator surfaces incidental test breakage caused by removed symbols being imported from unexpected places, fix those imports in this task; do not defer to TASK-010b.
+
+### TASK-010b: Morning pipeline orchestrator (new, end-to-end 3-account demo)
 - **Status**: To Do
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: High
-- **Depends on**: TASK-002, TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, TASK-009
-- **Context**: Wires all Milestone 2 components into `PipelineOrchestrator.run_morning(run_date)`. First end-to-end run is against 3 accounts only (Ackman, Burry, Chanos) to validate the pipeline before scaling to 30. Real-data WhatsApp message replaces the hardcoded Milestone 1 fixture. Always-send rule honored: empty-signals message ships even when no signals are found.
-- **Description**: Implement `pipeline.py` with `PipelineOrchestrator.run_morning(run_date: date, account_limit: int | None = None)`. Steps: (1) validate accounts via `AccountRegistry`, (2) `source.fetch_recent_posts` for each active account in collection window via `TradingCalendar`, (3) insert posts + engagement_snapshots, (4) extract tickers per post, (5) Claude-score each, (6) build signals via ScoringEngine (F1/F2/F3/F5 at this stage), (7) apply ConflictResolver, (8) classify into ACT_NOW/WATCH/UNSCORED, (9) for ACT_NOW: AmplifierFetcher (F4), (10) persist signals, (11) render morning alert top-5 ACT_NOW + top-5 WATCH, (12) send via `TwilioWhatsAppDelivery` with CallMeBot fallback, (13) write `daily_summaries` and `messages_sent` rows. `account_limit=3` for the initial milestone demo; remove for full run. CLI: `python -m influence_monitor.pipeline morning [--account-limit N] [--dry-run] [--use-fixtures]`. `--use-fixtures`: bypasses steps 1–9 entirely (no twikit, no Claude), inserts records from `tests/fixtures/sample_signals.json` directly into the `signals` table with all factor scores pre-populated, then executes steps 10–13 (classify → render → send). This allows M2 deliverables to be validated with a real WhatsApp even on days with no organic signals.
+- **Depends on**: TASK-002, TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, TASK-009, TASK-010a
+- **Context**: With the legacy code removed by TASK-010a, this task wires all Milestone 2 components into a new synchronous `PipelineOrchestrator.run_morning(run_date)`. First end-to-end run is against 3 accounts only (Ackman, Burry, Chanos) to validate the pipeline before scaling to 30. Real-data WhatsApp message replaces the hardcoded Milestone 1 fixture. Always-send rule honored: empty-signals message ships even when no signals are found. **Important:** the orchestrator is synchronous from the outside; the `source.fetch_recent_posts` twikit calls are async internally and must be wrapped with `asyncio.run()` at the ingestion boundary only — the orchestrator API stays sync.
+- **Description**: WRITE `influence_monitor/pipeline.py` from scratch (replacing the stub left by TASK-010a) — `PipelineOrchestrator` with `run_morning(run_date: date, account_limit: int | None = None, dry_run: bool = False, use_fixtures: bool = False)`. Steps: (1) validate accounts via `AccountRegistry`, (2) `source.fetch_recent_posts` for each active account in collection window via `TradingCalendar`, (3) insert posts + engagement_snapshots, (4) extract tickers per post, (5) Claude-score each, (6) build signals via ScoringEngine (F1/F2a/F2b/F3/F5 at this stage), (7) apply ConflictResolver, (8) classify into ACT_NOW/WATCH/UNSCORED, (9) for ACT_NOW: AmplifierFetcher (F4), (10) persist signals, (11) render morning alert top-5 ACT_NOW + top-5 WATCH, (12) send via `TwilioWhatsAppDelivery` with CallMeBot fallback, (13) write `daily_summaries` and `messages_sent` rows. `account_limit=3` for the initial milestone demo; full run later via TASK-011 defaults change. CLI: `python -m influence_monitor.pipeline morning [--account-limit N] [--dry-run] [--use-fixtures]`. `--use-fixtures`: bypasses steps 1–9 entirely (no twikit, no Claude), inserts records from `tests/fixtures/sample_signals.json` directly into the `signals` table with all factor scores pre-populated, then executes steps 10–13 (classify → render → send). REWRITE `tests/test_pipeline.py` and `tests/test_integration.py` (removing the skip markers added in TASK-010a) against the new synchronous orchestrator API.
+- **Implementation Checklist**:
+  - **Schema**: `posts` (all columns — already present), `engagement_snapshots` (post_id, snapshot_at, view_count, repost_count, reply_count, like_count — present), `signals` (full row including all F1..F5 + outcome NULLs — present), `daily_summaries` (summary_date, run_type, accounts_active, accounts_fetched, posts_fetched, signals_scored, signals_act_now, signals_watch, pipeline_status, error_message, duration_seconds — present), `messages_sent` (kind, delivery, status, body_preview, provider_id, error_message — present). No schema changes.
+  - **Wire**: This task IS the wiring. Every component from TASK-002/-004/-005/-006/-007/-008/-009 gets instantiated in `PipelineOrchestrator.__init__` and called in order in `run_morning()`. The CLI entry point is `if __name__ == "__main__": main()` at the bottom of the new `pipeline.py`; `main()` parses `sys.argv`, constructs `Settings()`, `SignalRepository(settings)`, all pipeline components, and invokes `orchestrator.run_morning(...)`. Signal delivery goes through `delivery/registry.py::DELIVERY_REGISTRY["twilio"]` with `delivery/registry.py::DELIVERY_REGISTRY["callmebot"]` as fallback on False return.
+  - **Call site**: N/A (top-level orchestrator; no other code calls it in PoC — GitHub Actions will invoke the CLI in TASK-014).
+  - **Imports affected**: **Test files rewritten here** (skip markers removed): `tests/test_pipeline.py`, `tests/test_integration.py`. New assertions target the synchronous `PipelineOrchestrator`, fixtured `SignalRepository`, and `DELIVERY_REGISTRY` delivery paths. Verify nothing in the production `influence_monitor/` tree references any deleted module (TASK-010a guarantees this; re-grep here as a safety check before finalizing).
+  - **Runtime files**: `tests/fixtures/sample_signals.json` — **exists** (376 lines, 10 pre-scored records; created in TASK-003). `--use-fixtures` mode must read this file and insert records via `repo.insert_signal(**kwargs)` — every JSON field that maps to a `signals` column gets passed as a kwarg. Fields that do not map to columns (e.g., `_comment`, `post_text`, `posted_at`, `account_handle`, `corroboration_count`) must be FILTERED OUT before the insert, with `post_text`/`posted_at`/`account_handle` used instead to first INSERT a row into `posts` (so the signal's `post_id` FK is valid) and to look up the `account_id` by handle. Also requires `.env` with Twilio + CallMeBot credentials; `data/signals.db` or Turso; `config/prompts/scoring_prompt.txt` (read transitively by `ClaudeHaikuClient`).
 - **Acceptance Criteria**:
-  - [ ] `run_morning` executes the 13 steps in order; each step logs START/DONE
-  - [ ] Non-trading-day short-circuit: no fetch, no message, log INFO and exit
-  - [ ] Empty-signals day: "no signals" WhatsApp message still ships (always-send)
-  - [ ] AmplifierFetcher called only for ACT_NOW signals (assert in test)
-  - [ ] All signals persisted with factor scores populated
-  - [ ] `daily_summaries` row upserted with pipeline_status, accounts_fetched, signals_scored, signals_act_now, signals_watch
-  - [ ] On `AccountRegistry` all-inactive: operational WhatsApp sent, `pipeline_status='failed'`
-  - [ ] On any unhandled exception: operational WhatsApp sent, traceback logged, no partial message
-  - [ ] `--dry-run` renders to stdout without sending or writing to DB
-  - [ ] `--account-limit 3` demo: pipeline runs end-to-end against 3 real accounts; WhatsApp arrives on user's phone
-  - [ ] `--use-fixtures`: inserts `sample_signals.json` records into `signals` table with all factor scores set; then runs classification → rendering → delivery; sends a real WhatsApp with realistic signal blocks (no twikit or Claude credentials required)
+  - [ ] New `pipeline.py` is fully synchronous (no `async def` at module level); any async twikit call is wrapped in `asyncio.run()` at the ingestion call-site only
+  - [ ] `run_morning` executes the 13 steps in order; each step logs START/DONE at INFO level
+  - [ ] Non-trading-day short-circuit (via `TradingCalendar.is_trading_day`): no fetch, no message, log INFO and exit
+  - [ ] Empty-signals day: "no signals" WhatsApp message still ships (always-send rule)
+  - [ ] AmplifierFetcher called only for ACT_NOW signals (assert in test via mock call-count)
+  - [ ] All signals persisted with F1, F2a/F2b (tier-appropriate), F3, F5 populated; F4 populated only for ACT_NOW
+  - [ ] `daily_summaries` row upserted with `pipeline_status`, `accounts_fetched`, `signals_scored`, `signals_act_now`, `signals_watch`, `duration_seconds`
+  - [ ] On `AccountRegistry` all-inactive: operational WhatsApp sent, `pipeline_status='failed'`, error logged to `daily_summaries.error_message`
+  - [ ] On any unhandled exception: operational WhatsApp sent, traceback logged via `logger.exception`, no partial morning alert delivered
+  - [ ] `--dry-run` renders to stdout without sending WhatsApp or writing to `signals`/`messages_sent`/`daily_summaries`
+  - [ ] `--account-limit 3` demo: pipeline runs end-to-end against 3 real accounts (Ackman, Burry, Chanos); WhatsApp arrives on user's phone
+  - [ ] `--use-fixtures`: reads `tests/fixtures/sample_signals.json`, inserts all required `posts` rows, then `signals` rows with all factor scores set; then runs classification (no-op since tiers are pre-set) → rendering → delivery; sends a real WhatsApp with realistic signal blocks (no twikit or Claude credentials required)
   - [ ] `python -m influence_monitor.pipeline morning --use-fixtures` completes successfully on any day, with or without organic signals
-- **Demo Artifact**: Two artifacts: (a) CLI log of the 3-account dry-run saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010-dryrun.txt`; (b) screenshot of the real WhatsApp morning alert — use `--use-fixtures` if no organic signals exist that day, or the live 3-account run if signals exist — saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010-live.png`.
-- **Notes**: Operational failure messages go to the same recipient phone — the user is both operator and user at PoC. `pipeline.py` is the CLI entry point.
+  - [ ] `tests/test_pipeline.py` and `tests/test_integration.py` rewritten: skip markers from TASK-010a removed; full assertions against the new orchestrator pass
+  - [ ] No test or production file references `EmailProvider`, `HolidayCalendar`, `ScorecardEngine`, `IndexMembershipResolver`, `CorroborationDetector`, or `SignalAggregator` (grep-verified)
+- **Demo Artifact**: Two artifacts: (a) CLI log of the 3-account dry-run saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010b-dryrun.txt`; (b) screenshot of the real WhatsApp morning alert — use `--use-fixtures` if no organic signals exist that day, or the live 3-account run if signals exist — saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010b-live.png`.
+- **Notes**: Operational failure messages go to the same recipient phone — the user is both operator and user at PoC. `pipeline.py` is the CLI entry point. Because this task replaces the stub left by TASK-010a with a real orchestrator, the test-validator pass here is the gate for Milestone 2 — a clean `pytest` run with the rewritten `test_pipeline.py` + `test_integration.py` is required before Milestone 3 begins.
 
 ---
 
@@ -290,17 +350,25 @@
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-005
-- **Context**: yfinance silent-stale-data is the #1 data-quality risk. Freshness assertion on every fetch is mandatory. Alpha Vantage is the fallback with 25 req/day — use sparingly. Also fetches SPY for the excess-return computation and the prior-`vol_lookback_days` vol window for each stock (default 20, configurable via `scoring_config.vol_lookback_days`).
-- **Description**: Implement `market_data/base.py` (`MarketDataClient` ABC). Implement `market_data/yfinance_client.py` (`YFinanceClient` with `fetch_ohlc(ticker, date)`, `fetch_close(ticker, date)`, `fetch_stock_vol(ticker, date, lookback_days)`, `fetch_spy_return(date)` — all with freshness assertion and single-retry). Implement `market_data/alpha_vantage_client.py` (`AlphaVantageClient` fallback via `GLOBAL_QUOTE`). Batch-fetch helper for efficiency. The lookback is passed as a parameter — callers read `scoring_config.vol_lookback_days` and pass it in; the client does not hardcode 20.
+- **Context**: yfinance silent-stale-data is the #1 data-quality risk. Freshness assertion on every fetch is mandatory. Alpha Vantage is the fallback with 25 req/day — use sparingly. Also fetches SPY for the excess-return computation and the prior-`vol_lookback_days` vol window for each stock (default 20, configurable via `scoring_config.vol_lookback_days`). **Important:** `market_data/base.py` (43 lines, `MarketDataClient` ABC + `DataFreshnessError` / `DataUnavailableError`), `market_data/yfinance_client.py` (160 lines), and `market_data/alpha_vantage_client.py` (94 lines) already exist. The existing `YFinanceClient` exposes `fetch_open`, `fetch_close`, `fetch_ohlcv`, `fetch_batch_close`, `fetch_with_retry` — but **does NOT have `fetch_stock_vol` or `fetch_spy_return`**. This task ADDS those two methods (plus updates the ABC) without regressing the existing methods.
+- **Description**: Update `market_data/base.py` ABC to include `fetch_stock_vol(ticker, target_date, lookback_days)` and `fetch_spy_return(target_date)` as abstract methods. Extend `market_data/yfinance_client.py` with: (a) `fetch_stock_vol(ticker, target_date, lookback_days) -> float | None` that pulls `lookback_days` trading days of history ending at `target_date` via `yf.Ticker(ticker).history(period=...)`, computes daily-return stdev, and returns `None` on unavailability; (b) `fetch_spy_return(target_date) -> float | None` that resolves `prev_trading_day` via the `TradingCalendar` built in TASK-005, fetches SPY close on both days, and returns `(today_close - prev_close) / prev_close`. Extend `market_data/alpha_vantage_client.py` to implement the same two methods (vol via daily time series, spy_return via GLOBAL_QUOTE or TIME_SERIES_DAILY on SPY). The lookback is passed as a parameter — callers read `scoring_config.vol_lookback_days` and pass it in; the client does not hardcode 20.
+- **Implementation Checklist**:
+  - **Schema**: Reads nothing and writes nothing directly. When fallback fires, `repo.log_api_usage(provider='yfinance_fallback', ...)` inserts an `api_usage` row (columns already exist). No schema changes.
+  - **Wire**: `YFinanceClient` + `AlphaVantageClient` are constructed in TASK-010b `PipelineOrchestrator.__init__` and passed to `OutcomeEngine` (TASK-012). `fetch_stock_vol` and `fetch_spy_return` are called from `OutcomeEngine.compute_and_store` in TASK-012, not from anywhere in the morning pipeline.
+  - **Call site**: New callers live in TASK-012's `OutcomeEngine`. Existing callers of `fetch_ohlcv`/`fetch_close`/`fetch_batch_close` from the legacy `pipeline.py` will be gone after TASK-010a strips that file to a stub — do not preserve any legacy call shapes for their sake. Verify with `grep -rn "fetch_ohlcv\|fetch_close\|fetch_batch_close"` that only TASK-012 callers remain.
+  - **Imports affected**: No class renames. The `MarketDataClient` ABC grows by two abstract methods — all concrete subclasses (`YFinanceClient`, `AlphaVantageClient`) must implement them to avoid instantiation errors. If any test or mock implements the ABC directly (e.g., a `FakeMarketDataClient` in `tests/test_market_data.py`), those mocks must gain stubs for the new methods too. Grep the tests directory for `MarketDataClient`.
+  - **Runtime files**: `TradingCalendar` (TASK-005, `market_data/trading_calendar.py`) is used for `previous_trading_day` resolution. No file I/O. Alpha Vantage API key read from `settings.alpha_vantage_api_key` — must be present in `.env.example` (verify — it is as of TASK-001).
 - **Acceptance Criteria**:
-  - [ ] `MarketDataClient` ABC defines the four fetch methods; `fetch_stock_vol` takes `lookback_days` as a required parameter (no default of 20 in the client)
-  - [ ] `YFinanceClient.fetch_ohlc` asserts `hist.index[-1].date() == date`; raises `DataFreshnessError` on stale
+  - [ ] `MarketDataClient` ABC has `fetch_stock_vol(ticker, target_date, lookback_days)` and `fetch_spy_return(target_date)` as abstract methods; both `YFinanceClient` and `AlphaVantageClient` implement them
+  - [ ] Existing `fetch_open`, `fetch_close`, `fetch_ohlcv`, `fetch_batch_close`, `fetch_with_retry` methods remain on `YFinanceClient` and their existing tests continue to pass unchanged
+  - [ ] `fetch_stock_vol` takes `lookback_days` as a required parameter (no default of 20 in the client)
+  - [ ] `YFinanceClient.fetch_ohlcv` continues to assert `hist.index[-1].date() == target_date`; raises `DataFreshnessError` on stale (no regression)
   - [ ] On `DataFreshnessError`: retry once (60s), then fall back to `AlphaVantageClient`; log `provider='yfinance_fallback'` to `api_usage`
-  - [ ] `fetch_stock_vol(ticker, date, lookback_days)` returns daily-return stdev over the prior `lookback_days` trading days of the ticker at `date`, using `TradingCalendar.trading_days_between` for date alignment
-  - [ ] `fetch_spy_return(date)` returns `(today_close - prev_close) / prev_close` for SPY using `TradingCalendar.previous_trading_day`
-  - [ ] Batch `fetch_closes(tickers, date)` uses `yf.download` for efficiency
-  - [ ] Unit tests: mock yfinance returning today (pass), yesterday (fail + fallback), empty (fail + fallback); stdev computation on known-vol sample for lookback_days=20 AND a second non-default value (e.g., 10) to confirm the parameter threads through
-- **Demo Artifact**: CLI output showing `fetch_ohlc` for AAPL + `fetch_spy_return` + `fetch_stock_vol(lookback_days=20)` for 3 real tickers, saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-011-market-data.txt`.
+  - [ ] `fetch_stock_vol(ticker, target_date, lookback_days)` returns daily-return stdev over the prior `lookback_days` trading days of the ticker at `target_date`; uses `TradingCalendar.trading_days_between` for date alignment; returns `None` on insufficient data (logged at WARNING)
+  - [ ] `fetch_spy_return(target_date)` returns `(today_close - prev_close) / prev_close` for SPY using `TradingCalendar.previous_trading_day`; returns `None` on fetch failure
+  - [ ] Batch `fetch_batch_close(tickers, target_date)` remains functional for efficiency
+  - [ ] Unit tests: mock yfinance returning today (pass), yesterday (fail + fallback), empty (fail + fallback); stdev computation on known-vol sample for `lookback_days=20` AND a second non-default value (e.g., 10) to confirm the parameter threads through; SPY return on weekend-crossing and Good-Friday-crossing dates
+- **Demo Artifact**: CLI output showing `fetch_ohlcv` for AAPL + `fetch_spy_return` + `fetch_stock_vol(lookback_days=20)` for 3 real tickers, saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-011-market-data.txt`.
 - **Notes**: Pin yfinance version. Annualize vs. keep daily vol is a modeling choice — we keep daily stdev (matches the daily overnight return numerator; excess/vol is then dimensionally `daily_return / daily_return` which is unitless and interpretable). Documented in the function docstring. The `stock_20d_vol` column name in `signals` is retained for schema stability even if the lookback is retuned; the actual lookback used on any given day is recoverable via `scoring_config.vol_lookback_days` at query time.
 
 ### TASK-012: Outcome engine + scorecard aggregator
@@ -308,17 +376,24 @@
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-011, TASK-003
-- **Context**: Per PRD §6.13–14 and the critical decision updates: overnight_return uses `TradingCalendar.previous_trading_day(today)` for prev_close — handles weekends AND holidays. Excess/vol replaces win-rate entirely: `(stock_return - spy_return) / stock_vol` where the vol lookback window is read from `scoring_config.vol_lookback_days` (default 20). Scorecard aggregator groups by poster (not ticker) and averages excess/vol across the 30-day window. Idempotent for safe re-runs.
-- **Description**: Implement `outcome/outcome_engine.py` (`OutcomeEngine.compute_and_store(signal_date)` — for every signal where `overnight_return IS NULL`: read `vol_lookback_days` from `scoring_config`; fetch today_open + today_close + prev_close (from `TradingCalendar.previous_trading_day`) + spy_return + stock_vol (via `fetch_stock_vol(ticker, date, lookback_days=vol_lookback_days)`); compute and persist overnight_return, tradeable_return, excess_vol_score, price_data_source into the `stock_20d_vol` column — the column name is retained for schema stability). Implement `outcome/scorecard_aggregator.py` (`ScorecardAggregator.top_n_posters(as_of, window_days=30, top_n=5)` returns rows of `{handle, avg_excess_vol, n_signals}` sorted desc). `⚠️ Sample still building` is emitted when `trading_days_with_signals < 20`.
+- **Context**: Per PRD §6.13–14 and the critical decision updates: overnight_return uses `TradingCalendar.previous_trading_day(today)` for prev_close — handles weekends AND holidays. Excess/vol replaces win-rate entirely: `(stock_return - spy_return) / stock_vol` where the vol lookback window is read from `scoring_config.vol_lookback_days` (default 20). Scorecard aggregator groups by poster (not ticker) and averages excess/vol across the 30-day window. Idempotent for safe re-runs. **Important:** both `outcome/outcome_engine.py` and `outcome/scorecard_aggregator.py` are currently 1-line stubs — this task creates them from scratch. The legacy `scorecard/scorecard_engine.py` (416 lines) implemented a completely different metric scheme (win-rate / sector-relative returns) against the old email design; it will have been DELETED by TASK-010a before this task starts, so there is no legacy code to migrate.
+- **Description**: Implement `outcome/outcome_engine.py` (`OutcomeEngine.compute_and_store(signal_date)` — for every signal where `excess_vol_score IS NULL`: read `vol_lookback_days` from `scoring_config`; fetch today_open + today_close via `market_client.fetch_ohlcv`, prev_close via `market_client.fetch_close(ticker, prev_trading_day)` where `prev_trading_day = TradingCalendar.previous_trading_day(signal_date)`, spy_return via `market_client.fetch_spy_return(signal_date)`, stock_vol via `market_client.fetch_stock_vol(ticker, signal_date, lookback_days=vol_lookback_days)`; compute and persist `overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score`, `price_data_source` via `repo.update_signal_outcome(signal_id, ...)` — the column name `stock_20d_vol` is retained for schema stability even when the actual lookback is not 20). Implement `outcome/scorecard_aggregator.py` (`ScorecardAggregator.top_n_posters(as_of, window_days=30, top_n=5)` returns rows of `{handle, avg_excess_vol, n_signals}` sorted desc). `⚠️ Sample still building` is emitted when `trading_days_with_signals < 20`.
+- **Implementation Checklist**:
+  - **Schema**: Reads `signals` columns `id`, `ticker`, `direction`, `signal_date`, `excess_vol_score` (filter NULL), `account_id`, `tier`. Writes via `repo.update_signal_outcome` which updates `prev_close`, `today_open`, `today_close`, `overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score`, `price_data_source`, `outcome_fetched_at`. All columns already exist in `schema.sql` (lines 168-178). ScorecardAggregator reads `signals` joined on `accounts.handle` — the existing `repo.get_signals_for_date` already JOINs `accounts`. A new repo method `repo.get_signals_for_date_range(start_date, end_date)` must be added to the repository for the 30-day scorecard query (does not currently exist — verified by grep of `repository.py`).
+  - **Wire**: `OutcomeEngine` is instantiated in TASK-013 `PipelineOrchestrator.__init__` and called from `run_evening()` as the first substantive step after the non-trading-day short-circuit. `ScorecardAggregator` is called by TASK-013 `run_evening()` after `compute_and_store` completes, feeding the `render_evening` function.
+  - **Call site**: N/A (no callers in this task; TASK-013 wires them).
+  - **Imports affected**: No renames. `OutcomeEngine.__init__(market_client: MarketDataClient, repo: SignalRepository, trading_calendar: TradingCalendar)`. `ScorecardAggregator.__init__(repo: SignalRepository, trading_calendar: TradingCalendar)`. Both modules import the repo's NEW method `get_signals_for_date_range` — if that method isn't added here, the evening pipeline will fail at runtime.
+  - **Runtime files**: None. All inputs come from the DB and the market-data client. `scoring_config.vol_lookback_days` read via `repo.get_scoring_config(tenant_id=1)` (already implemented; returns dict including `vol_lookback_days` seeded to 20.0).
 - **Acceptance Criteria**:
   - [ ] `OutcomeEngine.compute_and_store` is idempotent (skips signals with non-null `excess_vol_score`)
-  - [ ] `prev_close` resolved via `TradingCalendar.previous_trading_day` — Monday correctly uses Friday close
-  - [ ] `overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score` persisted to `signals` with 6 decimal places
+  - [ ] `prev_close` resolved via `TradingCalendar.previous_trading_day` — Monday correctly uses Friday close, Tuesday after Good Friday correctly uses Thursday close
+  - [ ] `overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score` persisted to `signals` with 6 decimal places (via `round(x, 6)` before insert)
   - [ ] On any price fetch fail: `price_data_source='unavailable'`, outcome columns NULL, signal excluded from scorecard
-  - [ ] `ScorecardAggregator.top_n_posters` returns top 5 by avg excess/vol across all scored signals from each poster in window
+  - [ ] `SignalRepository.get_signals_for_date_range(start_date, end_date, tenant_id=1)` added to `db/repository.py`; returns joined signal+account rows within the inclusive date range
+  - [ ] `ScorecardAggregator.top_n_posters` returns top 5 by avg excess/vol across all scored signals from each poster in window; returns empty list when no signals have `excess_vol_score IS NOT NULL`
   - [ ] Returns `n_signals` count alongside avg (for transparency in "building..." state)
-  - [ ] Identifies when `trading_days_with_signals < 20` so renderer can emit warning
-  - [ ] Unit tests: LONG + up stock → positive excess_vol; SHORT + up stock → negative excess_vol (correct sign); price fetch fail → NULL + unavailable marker; idempotency; weekend-crossing prev_close; Good-Friday-crossing prev_close
+  - [ ] `ScorecardAggregator` exposes `trading_days_with_signals(as_of, window_days=30) -> int` so renderer can emit the `⚠️ Sample still building` warning when `< 20`
+  - [ ] Unit tests: LONG + up stock → positive excess_vol; SHORT + up stock → negative excess_vol (correct sign); price fetch fail → NULL + unavailable marker; idempotency (re-run leaves non-null rows untouched); weekend-crossing prev_close; Good-Friday-crossing prev_close; empty-signals → empty scorecard (no crash)
 - **Demo Artifact**: Console output showing `compute_and_store` run against a simulated Friday → Monday weekend (fixture data) producing correct excess_vol values, saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-012-outcome.txt`.
 - **Notes**: No win-rate metric anywhere. No binary is_hit. Excess/vol is the only quality metric.
 
@@ -326,24 +401,31 @@
 - **Status**: To Do
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
-- **Depends on**: TASK-012, TASK-010
-- **Context**: Evening summary per PRD §6.17 + UX-SPEC.md + the UX-SPEC override decisions in PRD §8: three metrics per stock (overnight / tradeable / excess-vol with SPY and 20d-vol in parentheses). SHORT annotations `_(short = gain)_` on negative moves. Watch List shown separately. 30-day scorecard is per-poster ranked by average excess/vol. `⚠️ Sample still building` warning when <20 days. Always-send: ships on every trading day even with zero outcomes. `PipelineOrchestrator.run_evening` wires fetch → compute → render → send.
-- **Description**: Implement `rendering/evening_renderer.py` (`render_evening(outcomes, scorecard_rows, trading_days_scored, as_of_date) -> str`). Implement `PipelineOrchestrator.run_evening(run_date)` calling OutcomeEngine + ScorecardAggregator + EveningRenderer + `TwilioWhatsAppDelivery`. Always-send message when no outcomes. CLI: `python -m influence_monitor.pipeline evening [--dry-run] [--use-fixtures]`. `--use-fixtures`: inserts records from `tests/fixtures/sample_outcomes.json` (pre-computed outcome data) into the `signals` table, then runs ScorecardAggregator → render → send. Allows M3 deliverables to be validated with a real WhatsApp on any day.
+- **Depends on**: TASK-012, TASK-010b
+- **Context**: Evening summary per PRD §6.17 + UX-SPEC.md + the UX-SPEC override decisions in PRD §8: three metrics per stock (overnight / tradeable / excess-vol with SPY and 20d-vol in parentheses). SHORT annotations `_(short = gain)_` on negative moves. Watch List shown separately. 30-day scorecard is per-poster ranked by average excess/vol. `⚠️ Sample still building` warning when <20 days. Always-send: ships on every trading day even with zero outcomes. `PipelineOrchestrator.run_evening` wires fetch → compute → render → send. **Important:** `rendering/evening_renderer.py` is currently a 1-line stub. TASK-010b will have rewritten `pipeline.py` into a synchronous orchestrator — this task adds the `run_evening(...)` method to that same file.
+- **Description**: Implement `rendering/evening_renderer.py` (`render_evening(outcomes, scorecard_rows, trading_days_scored, as_of_date) -> str` or `-> list[str]` if multi-message split is needed at 4000 chars). Add `PipelineOrchestrator.run_evening(run_date, dry_run=False, use_fixtures=False)` method to the new `pipeline.py` (from TASK-010b) — calls OutcomeEngine + ScorecardAggregator + EveningRenderer + `TwilioWhatsAppDelivery` with CallMeBot fallback. Always-send message when no outcomes. Extend the CLI to: `python -m influence_monitor.pipeline evening [--dry-run] [--use-fixtures]`. `--use-fixtures`: inserts records from `tests/fixtures/sample_outcomes.json` (pre-computed outcome data) into the `signals` table, then runs ScorecardAggregator → render → send. Allows M3 deliverables to be validated with a real WhatsApp on any day.
+- **Implementation Checklist**:
+  - **Schema**: Reads all outcome columns populated by TASK-012 (`overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score`, `price_data_source`) plus the signal metadata (`ticker`, `direction`, `tier`, `account_id`, `signal_date`) — all exist. Writes `messages_sent` row via `repo.log_message_sent(kind='evening', ...)` (method exists) and upserts `daily_summaries` row with `run_type='evening'`, `avg_excess_vol`, etc. All columns exist in schema.
+  - **Wire**: `EveningRenderer` instantiated in `PipelineOrchestrator.__init__` (the TASK-010b orchestrator). `run_evening` is added as a new method on the same `PipelineOrchestrator` class. The CLI `main()` in `pipeline.py` dispatches to `run_morning` or `run_evening` based on `sys.argv[1]`. Delivery goes through the same `DELIVERY_REGISTRY` as morning.
+  - **Call site**: `PipelineOrchestrator.run_evening` is invoked by the CLI `main()` in `pipeline.py` and by the GitHub Actions `evening_summary.yml` workflow (TASK-014). No other callers.
+  - **Imports affected**: `from influence_monitor.rendering.evening_renderer import render_evening` in `pipeline.py`. `from influence_monitor.outcome.outcome_engine import OutcomeEngine` and `from influence_monitor.outcome.scorecard_aggregator import ScorecardAggregator` in `pipeline.py`. No renames.
+  - **Runtime files**: `tests/fixtures/sample_outcomes.json` — **exists** (475 lines; 10 records with outcome columns populated; created in TASK-003). `--use-fixtures` mode must read this file and (a) upsert `posts` rows (using `posted_at`, `account_handle` → lookup `account_id`), (b) upsert `signals` rows with all columns including outcome data, then (c) skip OutcomeEngine (outcomes already set) and proceed to ScorecardAggregator → render → delivery. The fixture JSON schema includes `_comment`, `post_text`, `posted_at`, `account_handle`, `corroboration_count` — these must be filtered out before the INSERT just as in TASK-010b's `--use-fixtures`.
 - **Acceptance Criteria**:
   - [ ] Per-stock outcome block shows three metrics: `+X.X% overnight / +X.X% tradeable / +X.XX excess-vol (SPY: +X.X% | vol: X.X%)`
   - [ ] SHORT + negative move → `_(short = gain)_` annotation; SHORT + positive → `_(short went up)_`
   - [ ] Watch List outcomes shown in a separate section ("Watch List (monitored only)")
   - [ ] 30-day per-poster scorecard: top 5 by avg excess_vol desc; each row shows `@Handle — avg excess-vol +X.XX (N signals)`
-  - [ ] `⚠️ Sample still building — treat as watchlist only (< 20 days)` shown when `trading_days_scored < 20`
+  - [ ] `⚠️ Sample still building — treat as watchlist only (< 20 days)` shown when `trading_days_scored < 20` (value from `ScorecardAggregator.trading_days_with_signals`)
   - [ ] Empty-outcomes day: "No outcomes to report today." still ships (always-send)
-  - [ ] Disclaimer footer present
+  - [ ] Disclaimer footer policy matches PRD §8 (removed for PoC personal-use per Milestone 1 override — verify with user before adding back)
   - [ ] `run_evening` trigger on non-trading days short-circuits without sending
-  - [ ] Integration test (dry-run): full evening run against Milestone 2's DB produces a correctly formatted message under 4,000 chars
-  - [ ] `--use-fixtures`: inserts `sample_outcomes.json` records into `signals` table; runs ScorecardAggregator → render → delivery; sends real WhatsApp with all three metrics and scorecard visible
+  - [ ] Integration test (dry-run): full evening run against a seeded DB with sample signals produces a correctly formatted message under 4,000 chars
+  - [ ] `--use-fixtures`: inserts `sample_outcomes.json` records into `signals` table (via `posts` insert then `signals` insert — excluding non-column JSON fields); runs ScorecardAggregator → render → delivery; sends real WhatsApp with all three metrics and scorecard visible
   - [ ] `python -m influence_monitor.pipeline evening --use-fixtures` completes successfully on any day, with or without organic signals
   - [ ] Live test: real evening WhatsApp arrives (use `--use-fixtures` if no organic outcomes exist)
+  - [ ] `daily_summaries` upserted with `run_type='evening'`, `avg_excess_vol`, `pipeline_status='ok'` on success
 - **Demo Artifact**: Screenshot of a real evening WhatsApp summary on the user's phone — use `--use-fixtures` if no organic outcomes exist that day — saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-013-evening.png`. Plus a dry-run sample text at `TASK-013-sample.txt`.
-- **Notes**: Message length budget: target <40 lines; hard cap 4,000 chars.
+- **Notes**: Message length budget: target <40 lines; hard cap 4,000 chars. The disclaimer footer was removed during Milestone 1 per PRD §8 override — do not add it back without user sign-off (the PRD §8 override explicitly flags re-evaluation before any non-personal-use distribution).
 
 ---
 
@@ -362,16 +444,24 @@
 - **Complexity**: Medium
 - **Depends on**: TASK-013
 - **Context**: GitHub Actions cron runs the pipeline unattended. Three workflows: market-hours poll (every 2h during 9 AM–5 PM ET), morning send (9:00 AM ET), evening send (4:45 PM ET). Turso hosts the DB so data persists across ephemeral runners. DST handling: cron runs at both EST and EDT UTC offsets OR uses a single UTC schedule with ET-aware early-exit logic inside the pipeline.
-- **Description**: Create `.github/workflows/market_hours_poll.yml`, `morning_alert.yml`, `evening_summary.yml`. Configure all secrets via `${{ secrets.* }}`. Verify Turso DB connection from Actions runner. Handle EST/EDT DST: use UTC cron but pipeline checks `is_trading_day` + ET-local time boundaries before running.
+- **Description**: Create `.github/workflows/market_hours_poll.yml`, `morning_alert.yml`, `evening_summary.yml`. Configure all secrets via `${{ secrets.* }}`. Verify Turso DB connection from Actions runner. Handle EST/EDT DST: use UTC cron but pipeline checks `is_trading_day` + ET-local time boundaries before running. Add a `poll` CLI subcommand to `pipeline.py` if it does not exist (the market-hours poll re-runs ingestion + classification only, no delivery — used to keep `engagement_snapshots` fresh between morning and evening).
+- **Implementation Checklist**:
+  - **Schema**: `engagement_snapshots` (written by `poll` subcommand — columns `post_id`, `snapshot_at`, `view_count`, `repost_count`, `reply_count`, `like_count` — all exist). No schema changes. Turso-side: the workflows must be able to write to the Turso DB over the wire — the existing `repository.py::_LibSQLBackend` (lines 53-85) already supports this.
+  - **Wire**: Workflows invoke `python -m influence_monitor.pipeline <subcommand>` as the only command. No Python code wiring needed beyond adding a `poll` subcommand to the new `pipeline.py` CLI main() if missing. Workflow secrets map 1:1 to `.env` keys (via `env:` block in each job step).
+  - **Call site**: The GitHub Actions runner is the caller. Locally, `python -m influence_monitor.pipeline [morning|evening|poll] [--dry-run]` is the entry — `morning` and `evening` are added by TASK-010b/-013; `poll` is added here.
+  - **Imports affected**: None beyond TASK-010b/-013. If `poll` subcommand is added, `pipeline.py` must route `main()` to a new method (`PipelineOrchestrator.run_poll()` or similar) that re-fetches posts without re-scoring or re-sending.
+  - **Runtime files**: Workflows reference `requirements.txt` (exists), `en_core_web_sm` spaCy model (downloaded at runtime), `config/accounts.json`, `config/scoring_config_seed.json`, `config/prompts/scoring_prompt.txt`, `config/false_positive_filter.json`, `data/sp500.csv` + `data/russell3000.csv` + `data/supplement.txt` (the latter two are downloaded-on-demand by `SymbolWhitelist.load` — `sp500_constituents.csv` currently exists as legacy name, `supplement.txt` exists, `russell3000.csv` does NOT — verify whitelist download-on-demand still works from the Actions runner with no cached copy). `data/twitter_cookies.json` is gitignored — twikit login must happen in an initial `workflow_dispatch` job or the cookies must be committed to GitHub Secrets as a multi-line secret (document the choice in this task).
 - **Acceptance Criteria**:
   - [ ] `market_hours_poll.yml`: cron every 2h UTC covering 9 AM–5 PM ET; pipeline internally checks ET-local hours to early-exit outside window
   - [ ] `morning_alert.yml`: cron `0 13 * * 1-5` (EST: 8 AM ET — buffer for processing; pipeline sends at 9:00 AM ET sharp by waiting if needed)
   - [ ] `evening_summary.yml`: cron `45 20 * * 1-5` (EST: 3:45 PM ET — buffer for price availability; pipeline sends 4:45 PM ET)
   - [ ] All workflows: `pip install -r requirements.txt` + `python -m spacy download en_core_web_sm` + set `TURSO_URL` + `TURSO_TOKEN`
-  - [ ] All secrets from TDD §7 registered in GitHub Actions Secrets
+  - [ ] All secrets from TDD §7 registered in GitHub Actions Secrets: `TWIKIT_USERNAME`, `TWIKIT_EMAIL`, `TWIKIT_PASSWORD`, `ANTHROPIC_API_KEY`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SANDBOX_NUMBER`, `CALLMEBOT_API_KEY`, `RECIPIENT_PHONE_E164`, `TURSO_URL`, `TURSO_TOKEN`, `ALPHA_VANTAGE_API_KEY`, `TWITTER_COOKIES_JSON` (multi-line, optional)
   - [ ] `continue-on-error: false` so failures surface in Actions UI
   - [ ] `workflow_dispatch` trigger available on all three for manual runs
   - [ ] Documented DST caveat per TDD §7: on March (spring-forward) and November (fall-back) transition days, UTC cron fires will drift 1 hour in ET; pipeline's internal ET-local-time check early-exits outside the target window. Acceptable for PoC — no code change. README captures the caveat.
+  - [ ] `poll` subcommand added to `pipeline.py` main() (if not already present) that fetches posts + writes engagement_snapshots without sending
+  - [ ] Twikit cookie persistence strategy documented: either (a) one-time `workflow_dispatch` auth run that writes cookies back to a secret, or (b) cookies committed as a multi-line secret. Document the chosen path in `projects/influence-post-monitoring/README.md`.
 - **Demo Artifact**: Screenshot of GitHub Actions showing 3 successful scheduled runs (one each of poll + morning + evening), saved to `docs/influence-post-monitoring/poc/demos/milestone-4/TASK-014-actions.png`.
 - **Notes**: Turso free tier covers PoC comfortably; README documents the setup (create DB, capture `libsql://` URL and token).
 
@@ -382,6 +472,12 @@
 - **Depends on**: TASK-014
 - **Context**: Remove the `account_limit=3` safeguard and run against all 30 primaries. `AccountRegistry` validates all handles and promotes backups for any inactive primary. Twitter suspension risk increases at scale — polling stays at 2h cadence.
 - **Description**: Remove `--account-limit` default from pipeline. Run full morning + evening pipeline against all 30 primaries for 5 consecutive trading days. Verify `AccountRegistry` correctly handles any inactive primary (e.g., Citron reduced activity, placeholder B14). Log all promotions to `accounts.status` changes.
+- **Implementation Checklist**:
+  - **Schema**: Reads `accounts` rows where `status='primary'`; writes status transitions via `repo.upsert_account(...)` (method exists, line 261 of `repository.py`). Also uses `repo.update_account_failure`, `repo.reset_account_failures`, `repo.rename_account_handle` — all exist. No schema changes.
+  - **Wire**: No new wiring — this task is a configuration/behavior change: remove the hardcoded `account_limit=3` default in `PipelineOrchestrator.run_morning()` (added in TASK-010b) so that the full primary set is processed by default. `AccountRegistry.validate_and_promote()` is already invoked as step 1 of `run_morning()` from TASK-010b.
+  - **Call site**: Callers of `PipelineOrchestrator.run_morning` are the CLI `main()` and the GitHub Actions workflows. Both pass `--account-limit` through from the user — when omitted, `account_limit=None` now processes all primaries.
+  - **Imports affected**: None.
+  - **Runtime files**: Depends on `config/accounts.json` containing all 45 entries (30 primary + 15 backup) — **verify by count** (`jq length config/accounts.json` → expect 45). Depends on every listed primary handle being currently live on Twitter at the time of the run — `AccountRegistry` handles the rest via the 5-step resolution sequence implemented in TASK-004.
 - **Acceptance Criteria**:
   - [ ] Morning pipeline processes all 30 active accounts within the 9:00 AM ET send deadline
   - [ ] Any inactive primary is promoted by `AccountRegistry` on startup; logged via WARNING
@@ -409,8 +505,14 @@
 - **Agent**: test-validator
 - **Complexity**: Medium
 - **Depends on**: TASK-015
-- **Context**: Integration tests validate the full pipeline end-to-end with mocked external deps. Fixtures cover: high-conviction LONG (FNMA-style), high-conviction SHORT (Burry-style), neutral post, direction-flip scenario, 3-poster mixed-direction scenario, Burry-deleted post, price-data-unavailable case.
-- **Description**: Create `tests/fixtures/sample_posts.json` (10 realistic posts). Implement end-to-end tests: morning pipeline with all scenarios → render → assert content; evening pipeline with price fixtures → assert excess_vol + scorecard.
+- **Context**: Integration tests validate the full pipeline end-to-end with mocked external deps. Fixtures cover: high-conviction LONG (FNMA-style), high-conviction SHORT (Burry-style), neutral post, direction-flip scenario, 3-poster mixed-direction scenario, Burry-deleted post, price-data-unavailable case. **Note:** `tests/fixtures/sample_posts.json` (72 lines) already exists from the old email-based PoC cut — contents must be reviewed and expanded to 10 entries covering the scenarios listed below.
+- **Description**: Expand `tests/fixtures/sample_posts.json` to 10 realistic post fixtures (append or replace existing entries as needed). Implement end-to-end tests: morning pipeline with all scenarios → render → assert content; evening pipeline with price fixtures → assert excess_vol + scorecard. Rewrite the existing legacy `tests/test_integration.py` (currently imports `DatabaseRepository` and old orchestrator APIs) against the new synchronous `PipelineOrchestrator` from TASK-010b/-013.
+- **Implementation Checklist**:
+  - **Schema**: `:memory:` SQLite test DB uses the same `schema.sql` via `repo.init_schema()` — no schema changes. Fixture inserts go through `repo.insert_post` → `repo.insert_signal` → `repo.update_signal_outcome` as implemented in earlier tasks.
+  - **Wire**: No production wiring — this task is test code only. Tests instantiate `PipelineOrchestrator` with mocked `source` (twikit), mocked `llm_client` (Claude), mocked `market_client` (yfinance), and mocked `delivery` (Twilio). The real `repo`, `ticker_extractor`, `scoring_engine`, `conflict_resolver`, `classifier`, `outcome_engine`, `scorecard_aggregator`, `renderers` are used unmocked.
+  - **Call site**: N/A.
+  - **Imports affected**: Test file `tests/test_integration.py` currently imports `DatabaseRepository`, `EmailProvider`, etc. — REWRITE. Delete or rewrite any test under `tests/` that still imports from the removed `influence_monitor.email.*`, `influence_monitor.calendar`, `influence_monitor.scorecard.*`, or `influence_monitor.market_data.index_resolver`. Grep the tests directory before writing new tests: `grep -rn "from influence_monitor.email\|from influence_monitor.calendar\|from influence_monitor.scorecard\|IndexMembershipResolver"` — zero matches expected after TASK-010a finishes.
+  - **Runtime files**: `tests/fixtures/sample_posts.json` (**exists**, needs expansion), `tests/fixtures/sample_signals.json` (exists, 10 records), `tests/fixtures/sample_outcomes.json` (exists, 10 records). No new runtime files.
 - **Acceptance Criteria**:
   - [ ] `sample_posts.json` has 10 fixtures covering: Ackman-FNMA LONG, Burry SHORT, neutral, direction flip (same poster), 3-poster mixed, deleted post, high virality, low virality (Watch only), multi-ticker post, corroboration (2 posters same ticker same direction)
   - [ ] Morning pipeline test: fixtures → Claude mock → scoring → classify → render → assert top ticker, tier, corroboration tag
@@ -420,6 +522,7 @@
   - [ ] Price-unavailable test: outcome row renders `— price data unavailable`
   - [ ] `pytest --cov=influence_monitor tests/` passes with ≥80% coverage on `extraction/`, `scoring/`, `outcome/`, `rendering/`
   - [ ] `pytest tests/` runs with no live-credential requirements (all external deps mocked)
+  - [ ] No test file imports from `influence_monitor.email`, `influence_monitor.calendar`, `influence_monitor.scorecard`, or `IndexMembershipResolver` (grep-verified)
 - **Demo Artifact**: Output of `pytest --cov` with coverage report + the fixture file, saved to `docs/influence-post-monitoring/poc/demos/milestone-5/TASK-016-tests.txt` and `TASK-016-fixtures.json`.
 - **Notes**: Use `unittest.mock.patch` for twikit, Claude, yfinance, Twilio. Store test DB in `:memory:` SQLite.
 
@@ -428,21 +531,28 @@
 - **Agent**: content-writer
 - **Complexity**: Low
 - **Depends on**: TASK-016
-- **Context**: README is the onboarding surface — must include the "Built with Claude Code" attribution, complete setup (Twilio sandbox activation, twikit auth, Turso DB setup, GitHub Actions secrets), the daily runbook, and MVP migration notes (tweepy swap, public leaderboard page).
-- **Description**: Write `projects/influence-post-monitoring/README.md` with: project description, `> Built with [Claude Code](https://claude.ai/code)` line, setup guide, architecture overview, configuration reference, known limitations, MVP migration notes.
+- **Context**: README is the onboarding surface — must include the "Built with Claude Code" attribution, complete setup (Twilio sandbox activation, twikit auth, Turso DB setup, GitHub Actions secrets), the daily runbook, and MVP migration notes (tweepy swap, public leaderboard page). **Note:** `projects/influence-post-monitoring/README.md` (~8 KB) already exists from the old email-based PoC. It mentions email providers, a stale directory tree, and stale CLI commands. This task REWRITES it for the WhatsApp-based architecture — not just edits around the edges.
+- **Description**: Rewrite `projects/influence-post-monitoring/README.md` with: project description, `> Built with [Claude Code](https://claude.ai/code)` line, setup guide, architecture overview, configuration reference, known limitations, MVP migration notes.
+- **Implementation Checklist**:
+  - **Schema**: N/A (documentation only).
+  - **Wire**: N/A.
+  - **Call site**: N/A.
+  - **Imports affected**: N/A.
+  - **Runtime files**: None written. References to `projects/influence-post-monitoring/README.md` (the file being rewritten), `.env.example`, `requirements.txt`, `config/accounts.json`, `config/scoring_config_seed.json`, `config/prompts/scoring_prompt.txt` — all exist. The README directory tree must match the **post-TASK-010a/-010b** code layout (no `email/`, no `calendar.py`, no `scorecard/`, no `index_resolver.py`). Verify layout via `ls influence_monitor/` at the time of writing.
 - **Acceptance Criteria**:
-  - [ ] README begins with project description + `> Built with [Claude Code](https://claude.ai/code)` directly below
+  - [ ] README begins with project description + `> Built with [Claude Code](https://claude.ai/code)` directly below (per CLAUDE.md GitHub Rule #4)
   - [ ] Setup: clone, venv, `pip install -r requirements.txt`, spaCy model download, `.env` from `.env.example`
   - [ ] Twilio WhatsApp Sandbox setup walkthrough (with console links)
-  - [ ] twikit throwaway-account + `python -m influence_monitor.ingestion.twitter_twikit --login` step for initial cookie save
+  - [ ] twikit throwaway-account + `python -m influence_monitor.pipeline auth` (or equivalent) step for initial cookie save
   - [ ] Turso account setup + `TURSO_URL` / `TURSO_TOKEN` capture
-  - [ ] GitHub Actions secrets list
+  - [ ] GitHub Actions secrets list (matches TASK-014's secret list)
   - [ ] Database init command: `python -m influence_monitor.db.repository --init`
-  - [ ] Dry-run commands: `--dry-run` morning and evening
-  - [ ] Architecture overview (2-para summary of the pipeline components)
-  - [ ] Known limitations: twikit ToS, Burry-deletion pattern, yfinance staleness, DST handling caveat
-  - [ ] MVP migration notes: `SOCIAL_SOURCE=twitter_official` tweepy swap, public leaderboard page plan, weight recalibration via SQL
+  - [ ] Dry-run commands: `--dry-run` morning and evening; `--use-fixtures` variants
+  - [ ] Architecture overview (2-para summary of the pipeline components) reflecting the new modules (delivery, ingestion, extraction, scoring F1..F5, outcome, rendering) — NOT the old email/calendar/scorecard modules
+  - [ ] Known limitations: twikit ToS, Burry-deletion pattern, yfinance staleness, DST handling caveat, twikit cookie refresh procedure
+  - [ ] MVP migration notes: `SOCIAL_SOURCE=twitter_official` tweepy swap, public leaderboard page plan, weight recalibration via SQL (`UPDATE scoring_config SET value=... WHERE key=...`)
   - [ ] Regulatory disclaimer prominent: "This is information about public posts, not investment advice."
+  - [ ] No references to email providers, SendGrid, Resend, or `HolidayCalendar` (grep-verified)
 - **Demo Artifact**: The finished README.md (link to file).
 - **Notes**: No marketing copy. No emojis. Technical documentation only.
 
@@ -453,6 +563,12 @@
 - **Depends on**: TASK-017
 - **Context**: Security review is the architect's gate before PoC → MVP. Covers CLAUDE.md security rules + architect-specific PII review, rate-limit abuse check, data-flow audit. `PHASE-REVIEW.md` summarizes the PoC: what worked, what didn't, what to promote from BACKLOG, Beta-decision commercial-signal reading.
 - **Description**: Conduct security review against CLAUDE.md + TDD §5. Write `docs/influence-post-monitoring/poc/PHASE-REVIEW.md` per the phase-review template.
+- **Implementation Checklist**:
+  - **Schema**: N/A (review task; writes no code or data).
+  - **Wire**: N/A.
+  - **Call site**: N/A.
+  - **Imports affected**: N/A.
+  - **Runtime files**: Reads all project files for review. Writes `docs/influence-post-monitoring/poc/PHASE-REVIEW.md` (per template at `docs/templates/PHASE-REVIEW-TEMPLATE.md` — verify template exists before starting). Also reads `docs/influence-post-monitoring/poc/BACKLOG.md` (may or may not exist yet — if absent, note "no backlog items accrued during PoC" in the review).
 - **Acceptance Criteria**:
   - [ ] No secrets in code or `.env.example` (grep for `TWIKIT_PASSWORD`, `TWILIO_AUTH_TOKEN`, `ANTHROPIC_API_KEY`, `TURSO_TOKEN` in py/json/yaml)
   - [ ] `data/twitter_cookies.json` confirmed gitignored + absent from `git log`
