@@ -1,487 +1,473 @@
 # Task Breakdown — Influence Post Monitoring
 
 > **Status**: Active
-> **Last Updated**: 2026-04-17 (PoC complete — all 20 tasks done)
-> **Depends on**: PRD.md, TDD.md, DATA-SOURCES.md (all approved)
-
----
+> **Phase**: PoC
+> **Last Updated**: 2026-04-18
+> **Depends on**: PRD.md, TDD.md, DATA-SOURCES.md (all drafted 2026-04-18)
+> **Supersedes**: 2026-04-17 TASKS.md (email-based 20-task PoC — fully rebuilt)
 
 ## Progress Summary
 
 | Status | Count |
 |--------|-------|
-| Done | 20 |
+| Done | 1 |
 | In Progress | 0 |
-| Not Started | 0 |
+| To Do | 17 |
 | Blocked | 0 |
 
 ---
 
-## Sprint 1: Project Scaffolding and Database Foundation
+## Milestone 1: First WhatsApp Alert End-to-End (hardcoded data)
 
-### TASK-001: Project scaffolding and directory structure
-- **Status**: Done (2026-04-15)
-- **Agent**: data-pipeline
+> **Goal**: Prove the WhatsApp delivery path works before any pipeline is built. User receives a formatted morning alert on their phone using hardcoded sample signals. Validates the Twilio setup, the message format, and the always-send + disclaimer footer rules.
+> **Acceptance Criteria**: User's phone receives a WhatsApp message formatted per PRD §6.16 (Act Now + Watch List sections, conviction dots, disclaimer footer). User approves the format before building the real pipeline.
+> **Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-1/`
+> **Review Checkpoint**: User reviews the delivered message format and approves before Milestone 2 begins. Run `/milestone-complete influence-post-monitoring`.
+> **Status**: To Do
+
+### PRE-001: Twilio account + WhatsApp Sandbox activation (human prerequisite)
+- **Status**: To Do
+- **Agent**: none — manual user process
 - **Complexity**: Low
 - **Depends on**: None
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: Establishes the directory layout defined in TDD.md Section 8 and installs all pinned dependencies. This is the foundation every subsequent task builds on.
-- **Description**: Create the project directory structure under `projects/influence-post-monitoring/`, initialize a Python 3.11 venv, write `requirements.txt` with all pinned dependencies from TDD.md Section 3, create `.env.example` with all env var placeholders, and create `.gitignore` (includes `.env`, `data/twitter_cookies.json`, `data/signals.db`, `logs/`).
+- **Context**: Twilio WhatsApp Sandbox requires manual activation — a human must create the Twilio trial account and register their personal phone as a sandbox participant by sending a `join <code>` message. This cannot be automated and must complete before any code-level messaging work is possible.
+- **Description**: User creates a Twilio trial account at console.twilio.com, navigates to Messaging → Try it out → Send a WhatsApp message, and from their personal WhatsApp sends the `join <sandbox-code>` message to `+1 (415) 523-8886`. User captures the Account SID, Auth Token, and Sandbox sender number into a local `.env`. User also obtains a CallMeBot API key by sending the CallMeBot bootstrap message from the same phone.
 - **Acceptance Criteria**:
-  - [x] Directory structure matches TDD.md Section 8 exactly (all `__init__.py` files present)
-  - [x] `requirements.txt` lists all dependencies with pinned versions: twikit 2.3.3, yfinance (pinned), finvizfinance 1.3.0, spacy 3.8.13, anthropic, pydantic v2, pydantic-settings, resend 2.28.1, APScheduler 3.11.2, httpx, pytest
-  - [x] `venv` activates cleanly with `source venv/bin/activate && pip install -r requirements.txt` producing no errors
-  - [x] `python -m spacy download en_core_web_sm` succeeds
-  - [x] `.env.example` contains all env vars from TDD.md Section 7 with placeholder values
-  - [x] `.gitignore` excludes `.env`, `data/twitter_cookies.json`, `data/signals.db`, `logs/`, `venv/`, `__pycache__/`
-  - [x] `config/investors_seed.json` contains all 17 active investor profiles from DATA-SOURCES.md seed list
-  - [x] `config/prompts/scoring_prompt.txt` contains the scoring system prompt from DATA-SOURCES.md Source 5
-  - [x] `config/false_positive_filter.json` contains the uppercase ticker false-positive word list
-  - [x] `config/scoring_weights_seed.json` contains the 5 scoring component weights from TDD.md Section 2.3
-- **Notes**: Do not create GitHub repo yet — that happens at TASK-001 completion per CLAUDE.md task completion checklist.
+  - [ ] Twilio trial account created; ~$15 credit visible in console
+  - [ ] User's phone number registered as a WhatsApp sandbox participant (confirmation message received)
+  - [ ] `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SANDBOX_NUMBER` (`whatsapp:+14155238886`), `RECIPIENT_PHONE_E164` captured in local notes
+  - [ ] CallMeBot API key obtained and captured as `CALLMEBOT_API_KEY`
+- **Demo Artifact**: Screenshot of the sandbox confirmation message on the user's WhatsApp saved to `docs/influence-post-monitoring/poc/demos/milestone-1/PRE-001-sandbox-join.png` (phone number redacted).
+- **Notes**: This task is a pre-implementation human prerequisite. No code is written. The user reports back with the credentials captured when done; TASK-001 cannot begin until PRE-001 is complete.
 
----
+### TASK-001: Project scaffolding + config + MessageDelivery interface
+- **Status**: Done (2026-04-18)
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
+- **Depends on**: PRE-001
+- **Context**: Establishes the directory layout in TDD §8, the `Settings` class (pydantic-settings), the `MessageDelivery` ABC at `delivery/base.py`, and both concrete implementations (`TwilioWhatsAppDelivery`, `CallMeBotDelivery`). All four exist together because the delivery path is the Milestone 1 deliverable — the user must see a real WhatsApp message.
+- **Description**: Create `projects/influence-post-monitoring/` with full directory structure per TDD §8. Write `requirements.txt` with pinned versions (twikit 2.3.3, yfinance, finvizfinance 1.3.0, pandas_market_calendars, spacy 3.8.13, anthropic, pydantic v2, pydantic-settings, twilio, httpx, libsql-client, APScheduler 3.11.2, pytest, pytest-cov). Create `.env.example` with all env vars from TDD §7. Create `.gitignore` (includes `.env`, `data/twitter_cookies.json`, `data/*.db`, `logs/`, `venv/`). Implement `influence_monitor/config.py` with `Settings`. Implement `delivery/base.py` with `MessageDelivery` ABC. Implement `delivery/twilio_whatsapp.py` with `TwilioWhatsAppDelivery.send(text) -> bool` + retry logic. Implement `delivery/callmebot.py` with `CallMeBotDelivery.send(text) -> bool` as the fallback. Implement `delivery/registry.py` with `DELIVERY_REGISTRY`.
+- **Acceptance Criteria**:
+  - [ ] Directory structure matches TDD §8 (all `__init__.py` present)
+  - [ ] `requirements.txt` pins all dependencies from TDD §3
+  - [ ] `venv && pip install -r requirements.txt && python -m spacy download en_core_web_sm` all succeed
+  - [ ] `.env.example` contains every env var from TDD §7 with placeholder values
+  - [ ] `MessageDelivery` ABC defines `send(text: str) -> bool`
+  - [ ] `TwilioWhatsAppDelivery` reads `TWILIO_*` env vars and the `RECIPIENT_PHONE_E164`; calls `Client(sid, token).messages.create(from_=sandbox_number, to=recipient, body=text)`
+  - [ ] On Twilio 4xx/5xx or exception: returns `False`, logs ERROR, does not raise
+  - [ ] `CallMeBotDelivery.send()` issues an HTTP GET to the CallMeBot endpoint with URL-encoded body + API key
+  - [ ] `DELIVERY_REGISTRY` maps `"twilio"` → `TwilioWhatsAppDelivery`, `"callmebot"` → `CallMeBotDelivery`
+  - [ ] Unit tests (mocked HTTP): Twilio success returns True, Twilio 4xx returns False, CallMeBot success returns True
+  - [ ] Integration test (requires `.env`): `python -m influence_monitor.delivery.twilio_whatsapp --test-message "hello"` sends a real message and returns True
+- **Demo Artifact**: Screenshot of the `"hello"` test message delivered to the user's WhatsApp, saved to `docs/influence-post-monitoring/poc/demos/milestone-1/TASK-001-test-message.png`.
+- **Notes**: Per CLAUDE.md GitHub Rule #2, this is the first task in the PoC — create the `andrew-yuhochi/influence-post-monitoring` public GitHub repo at first task completion, before pushing. README includes the `> Built with [Claude Code](https://claude.ai/code)` line.
 
-### TASK-002: Database schema and repository layer
-- **Status**: Done (2026-04-15)
-- **Agent**: data-pipeline
+### TASK-002: Morning alert renderer + end-to-end hardcoded demo
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-001
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: All tables must include `tenant_id` from day one (multi-tenancy requirement from CLAUDE.md and TDD.md). The `signals` table schema is the commercial asset — every sub-score column must exist from the start, even those filled later.
-- **Description**: Implement `db/schema.sql` with all CREATE TABLE statements from TDD.md Section 2.4. Implement `db/repository.py` with a `DatabaseRepository` class covering all read/write operations needed by the pipeline. Seed the database with the default tenant, scoring weights, and investor profiles from config files.
+- **Context**: The morning alert format is the keystone UX — it determines whether the user will read and trust the system. Rendering from hardcoded fixture data first (no twikit, no Claude, no DB) lets the user validate the format in a real WhatsApp message before any ingestion pipeline is built. This is the Milestone 1 user-observable deliverable.
+- **Description**: Implement `rendering/morning_renderer.py` with a `render_morning(signals: list[RenderedSignal], collection_time: datetime, accounts_count: int) -> str` function per PRD §6.16 and UX-SPEC.md + the UX-SPEC override decisions in PRD §8. Signal blocks include `DIRECTION $TICKER (Market Cap Class)`, conviction dots (`●●●●○` mapped from 0–10 score), poster handle, inline corroboration/conflict tags (`⚠️ Direction changed`, `⚠️ Conflicted — opposing view exists`, `CORROBORATED — N posters`), quote fragment ≤150 chars. Empty states: no Act Now → `"No posts above threshold overnight."`; no signals anywhere → explicit no-signals message. Footer: `_This is information about public posts, not investment advice. Do your own research._`. Implement CLI `python -m influence_monitor.rendering.morning_renderer --demo` that builds a hardcoded fixture (FNMA + NFLX + AAPL Act Now, NOVA + RIVN Watch List) and sends via `TwilioWhatsAppDelivery`.
 - **Acceptance Criteria**:
-  - [x] `schema.sql` defines all 8 tables: `tenants`, `investor_profiles`, `posts`, `signals`, `engagement_snapshots`, `index_membership`, `scoring_weights`, `daily_summaries`, `api_usage`
-  - [x] All tables have `tenant_id INTEGER NOT NULL DEFAULT 1` except `index_membership`, `api_usage`, and `engagement_snapshots`
-  - [x] `posts.external_id` has a UNIQUE index (deduplication)
-  - [x] `posts` table includes ML-first social context columns: `bookmark_count`, `quote_tweet_id`, `is_thread`, `thread_position`, `hashtags` (JSON), `mentioned_users` (JSON), `url_links` (JSON), `media_type`, `language`, `follower_count_at_post`, `following_count_at_post`
-  - [x] `signals` table includes all sub-score columns (`score_credibility`, `score_conviction`, `score_argument`, `score_engagement`, `score_historical`), return windows (`return_5d`, `return_10d`, `return_30d`), market context (`prev_close_price`, `high_price`, `low_price`, `volume`, `avg_volume_30d`, `volume_ratio`, `sp500_return_pct`, `vix_at_signal`, `sector_return_pct`), stock context (`market_cap_at_signal`, `sector`, `industry`), `morning_rank`, `llm_raw_response`, `llm_input_tokens`, `llm_output_tokens`
-  - [x] `engagement_snapshots` table captures periodic engagement metric snapshots per post
-  - [x] `DatabaseRepository` has methods: `upsert_investor_profile`, `insert_post`, `insert_signal`, `insert_engagement_snapshot`, `get_signals_for_date`, `update_signal_prices`, `update_signal_market_context`, `update_investor_accuracy`, `insert_daily_summary`, `get_investor_by_handle`, `log_api_usage`
-  - [x] `python -m influence_monitor.db.repository --init` seeds the DB from config files without error
-  - [x] After seeding: `SELECT COUNT(*) FROM investor_profiles` returns 17; `SELECT COUNT(*) FROM scoring_weights` returns 5
-  - [x] `INSERT OR IGNORE` used for post deduplication (re-fetching same post is a no-op)
-- **Notes**: Use `aiosqlite` for async operations. Use raw SQL (no ORM). Connection string sourced from `settings.database_path`.
+  - [ ] `render_morning` produces output matching the UX-SPEC.md Full morning alert mock structure
+  - [ ] Act Now section caps at 5 signals, ordered by conviction score descending
+  - [ ] Watch List section caps at 5 signals, ordered by views/hour descending
+  - [ ] Conviction dots: 5 filled for ≥9.0 score, 4 for ≥7.0, 3 for ≥5.0, 2 for ≥3.0, 1 for ≥1.0, 0 otherwise
+  - [ ] `CORROBORATED — N posters` rendered when `corroboration_count >= 2`
+  - [ ] `⚠️ Direction changed` rendered when `direction_flip=True`
+  - [ ] `⚠️ Conflicted — opposing view exists` rendered when `conflict_group='opposing_exists'`
+  - [ ] Empty-Act-Now message rendered correctly
+  - [ ] Full no-signals message rendered correctly (empty both sections)
+  - [ ] Disclaimer footer present on every message
+  - [ ] Output stays under 4,000 chars even with 10 max-length signals
+  - [ ] Unit tests cover all five rendering scenarios (full, Act Now empty, all empty, direction flip, conflict)
+  - [ ] `python -m influence_monitor.rendering.morning_renderer --demo` sends a real WhatsApp message with hardcoded fixture and returns success
+- **Demo Artifact**: Screenshot of the hardcoded morning alert delivered to WhatsApp, saved to `docs/influence-post-monitoring/poc/demos/milestone-1/TASK-002-morning-alert.png`. Phone number and Twilio sandbox number redacted.
+- **Notes**: Output format must be plain text with WhatsApp markdown-lite only. No HTML. No markdown tables. Unicode symbols render natively.
 
 ---
 
-## Sprint 2: Social Media Ingestion
+## Milestone 2: Ingestion + Scoring Pipeline (Act Now tier only)
 
-### TASK-003: SocialMediaSource interface and twikit ingestion
-- **Status**: Done (2026-04-16)
-- **Agent**: data-pipeline
+> **Goal**: Pipeline fetches posts from 3 real accounts (Ackman, Burry, Chanos — activist + deleter + short), extracts tickers, scores with Claude Haiku, applies the five-factor model, and classifies signals into Act Now tier. Evening outcome computation comes in Milestone 3.
+> **Acceptance Criteria**: `python -m influence_monitor.pipeline morning --accounts 3` runs end-to-end without crashes; signals appear in the Turso DB; WhatsApp morning alert arrives with real data (even if limited); user can query `signals` table and verify all five factor scores are populated.
+> **Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-2/`
+> **Review Checkpoint**: User reviews at least 2 days of real morning alerts + inspects the DB to confirm the raw data capture. Approves before Milestone 3 begins.
+> **Depends on**: Milestone 1 review passed
+> **Status**: To Do
+
+### TASK-003: Turso-hosted SQLite schema + repository layer
+- **Status**: To Do
+- **Agent**: architect (phase review), data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
+- **Depends on**: TASK-001
+- **Context**: Schema from TDD §2.4 with multi-tenant `user_id`+`tenant_id` on every table. The `signals` table is the commercial asset — every sub-score column (F1–F5 plus outcome columns) must exist from day one, even those filled by later tasks. Turso free tier is the cloud host; `libsql-client` is a drop-in replacement for sqlite3. Local `data/signals.db` fallback when `TURSO_URL` is unset.
+- **Description**: Create `db/schema.sql` with all CREATE TABLE from TDD §2.4 (tenants, users, accounts, posts, engagement_snapshots, retweeters, price_cache, scoring_config, signals, messages_sent, daily_summaries, api_usage). Implement `db/repository.py` with `SignalRepository` — connection management (Turso or local SQLite via `libsql_client`), and all read/write methods referenced by later tasks. Implement `--init` CLI flag that creates schema, seeds the default tenant, the default user (from `.env` `RECIPIENT_PHONE_E164`), all 45 accounts from `config/accounts.json`, and `scoring_config` from `config/scoring_config_seed.json`. Also create `tests/fixtures/sample_signals.json` (10 pre-scored, pre-classified signal records covering all key rendering scenarios) and `tests/fixtures/sample_outcomes.json` (same records with outcome data populated). These fixture files are the basis for `--use-fixtures` mode in the orchestrators (TASK-010, TASK-013) — allowing deliverables to be tested without real overnight signals.
+- **Acceptance Criteria**:
+  - [ ] `schema.sql` creates all 11 tables from TDD §2.4
+  - [ ] `accounts`, `posts`, `signals`, `messages_sent`, `daily_summaries`, `users`, `scoring_config` all have `user_id` (where applicable) AND `tenant_id` columns defaulting to 1
+  - [ ] `accounts` table includes `consecutive_failures INTEGER NOT NULL DEFAULT 0` and `last_failure_at DATETIME` columns (for `AccountRegistry` debounce in TASK-004)
+  - [ ] `posts (source_type, external_id)` has UNIQUE constraint
+  - [ ] `signals` includes every factor column (`score_credibility`, `score_virality_abs`, `score_virality_vel`, `score_consensus`, `score_amplifier`, `liquidity_modifier`) AND outcome columns (`prev_close`, `today_open`, `today_close`, `overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score`, `price_data_source`)
+  - [ ] `signals` includes `direction_flip`, `conflict_group`, `penalty_applied`, `final_score`, `tier`, `morning_rank`
+  - [ ] `libsql_client` is used for Turso; falls back to `sqlite3` on local `data/signals.db` when `TURSO_URL` is unset
+  - [ ] `python -m influence_monitor.db.repository --init` seeds DB without error
+  - [ ] After seeding: `SELECT COUNT(*) FROM accounts WHERE status='primary'` = 30, `status='backup'` = 15, `SELECT COUNT(*) FROM scoring_config` = 17 (5 weights + 4 virality/penalty thresholds + 1 vol lookback + 2 registry ops + 5 liquidity modifiers)
+  - [ ] `tests/fixtures/sample_signals.json` created with 10 pre-classified signal records covering: FNMA LONG ACT_NOW (corroborated 2 posters), NFLX SHORT ACT_NOW, AAPL LONG ACT_NOW, NOVA LONG WATCH, RIVN SHORT WATCH, direction-flip ACT_NOW (with `direction_flip=True`), multi-poster conflicted TSLA (with `conflict_group='opposing_exists'`), neutral/unscored, high-virality Watch-only, low-conviction ACT_NOW
+  - [ ] `tests/fixtures/sample_outcomes.json` contains the same 10 records plus `overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score` populated for all ACT_NOW and WATCH signals (covering positive, negative, and SHORT-annotated cases)
+  - [ ] `scoring_config` seed values match DATA-SOURCES.md §Virality threshold + operational config starting values exactly: `direction_flip_penalty=0.0`, `vol_lookback_days=20`, `max_consecutive_failures=3`, `retry_rest_minutes=30`, `watch_velocity_floor=1000`, `virality_views_threshold=50000`, `virality_reposts_threshold=500`, liquidity modifiers per TDD §2.4 (0.8/0.9/1.0/1.15/1.3)
+  - [ ] Repository exposes methods: `insert_post`, `insert_engagement_snapshot`, `insert_retweeter`, `upsert_account`, `update_account_failure` (increment `consecutive_failures` + set `last_failure_at`), `reset_account_failures` (set to 0), `rename_account_handle` (update handle in place), `insert_signal`, `update_signal_outcome`, `get_signals_for_date`, `get_scoring_config`, `log_message_sent`, `log_api_usage`, `upsert_daily_summary`
+- **Demo Artifact**: Output of `sqlite3 data/signals.db '.schema signals'` + `SELECT COUNT(*) FROM accounts GROUP BY status;` + `SELECT key, value FROM scoring_config ORDER BY key;` saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-003-schema.txt`.
+- **Notes**: `libsql_client` is the Turso-provided SQLite-compatible client. Seed `config/accounts.json` from the DATA-SOURCES.md §Monitored Accounts table (all 45 entries, including B14 Josh Wolfe and B15 Mark Yusko). `config/scoring_config_seed.json` includes all 17 scoring keys — weights, virality thresholds, direction flip penalty (seeded to 0.0), vol lookback (seeded to 20), registry ops (max_consecutive_failures, retry_rest_minutes), and liquidity modifiers — and must be identical to the DATA-SOURCES.md table.
+
+### TASK-004: SocialMediaSource ABC + twikit ingestion + AccountRegistry
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: High
-- **Depends on**: TASK-002
-- **Estimated Effort**: L (4-8 hours)
-- **Context**: twikit is the highest-risk component (ToS violation, account suspension, X patches). The `SocialMediaSource` ABC must be established first so that the official API swap path (TASK is a stub in this sprint) requires only one module swap. Credential storage for twikit is sensitive — cookies must be gitignored.
-- **Description**: Implement `ingestion/base.py` with the `SocialMediaSource` ABC and `RawPost` dataclass. Implement `ingestion/twitter_twikit.py` with `TwitterIngestor`. Implement `ingestion/registry.py` with `SOURCE_REGISTRY`. Create stub files for `twitter_official.py`, `substack.py`, `congressional.py`.
+- **Depends on**: TASK-003
+- **Context**: twikit is the highest-risk PoC component (ToS violation, suspension, X patches). The `SocialMediaSource` ABC is established first so the MVP swap to the official API is one file. The `AccountRegistry` is the account validation and backup promotion component called at pipeline startup — it keeps exactly 30 primaries active. Critically, it debounces transient failures (`consecutive_failures` counter) AND tries to resolve renamed handles BEFORE promoting a backup — account disappearances in practice are often renames, not deletions. The throwaway X account credentials are sensitive; `data/twitter_cookies.json` is gitignored.
+- **Description**: Implement `ingestion/base.py` (`SocialMediaSource` ABC + `RawPost` + `Retweeter` dataclasses; add `search_user(display_name) -> list[User]` to the ABC to support handle rediscovery). Implement `ingestion/twitter_twikit.py` (`TwitterTwikitSource` with login, cookie persistence, `fetch_recent_posts`, `fetch_retweeters`, `search_user`). Implement `ingestion/account_registry.py` per TDD §2.1 — the full handle-resolution + consecutive-failure sequence. Implement `ingestion/registry.py` (`SOURCE_REGISTRY`). Create stub `ingestion/twitter_official.py` for MVP swap. Add `engagement_snapshots` INSERT on every post fetch.
 - **Acceptance Criteria**:
-  - [x] `SocialMediaSource` ABC defines `fetch_recent_posts(author_handle, since, max_count)` and `source_type()` abstract methods
-  - [x] `RawPost` dataclass contains all fields from TDD.md Section 2.1 with correct types, including ML-first social context fields: `bookmark_count`, `quote_tweet_id`, `is_thread`, `thread_position`, `hashtags`, `mentioned_users`, `url_links`, `media_type`, `language`, `follower_count_at_post`, `following_count_at_post`
-  - [x] `TwitterIngestor` authenticates via `client.login()` on first run, saves cookies; uses `client.load_cookies()` on subsequent runs
-  - [x] `TwitterIngestor.fetch_recent_posts()` filters results to only posts after the `since` parameter
-  - [x] `TwitterIngestor.fetch_recent_posts()` stores full tweet object as JSON in `RawPost.raw_payload`
-  - [x] Per-account failure logs a WARNING and continues; does not crash the full fetch
-  - [x] `IngestorError` is raised when fewer than `settings.min_accounts_threshold` (13) accounts succeed
-  - [x] `SOURCE_REGISTRY` maps `"twitter_twikit"` to `TwitterIngestor`
-  - [ ] Integration test (manual): run against 3 real accounts and verify `RawPost` objects are returned with non-null `text`, `external_id`, `posted_at`
-  - [x] `data/twitter_cookies.json` is in `.gitignore` and is never committed
-- **Notes**: Requires a real Twitter account's credentials in `.env`. Test with 3 accounts before running against all 17 to avoid triggering rate limits during development.
+  - [ ] `SocialMediaSource` ABC defines `fetch_recent_posts`, `fetch_retweeters`, `search_user`, `source_type`
+  - [ ] `RawPost` includes all fields from TDD §2.1 (engagement metrics, `raw_payload`, `posted_at`, `fetched_at`)
+  - [ ] `TwitterTwikitSource` authenticates via `client.login()` on first run, saves cookies; subsequent runs use `load_cookies()`
+  - [ ] `fetch_recent_posts` filters to posts with `posted_at >= since` and respects `max_count`
+  - [ ] Full tweet JSON stored in `RawPost.raw_payload`
+  - [ ] `fetch_retweeters` returns up to 100 Retweeter objects from `client.get_retweeters(tweet_id)`
+  - [ ] `search_user(display_name)` returns candidate User objects for handle rediscovery (twikit `client.search_user` or equivalent)
+  - [ ] Per-account fetch failure logs WARNING, increments `accounts.consecutive_failures`, updates `last_failure_at`, and continues; does not raise
+  - [ ] Successful fetch resets `accounts.consecutive_failures = 0`
+  - [ ] `AccountRegistry.validate_and_promote()` executes the 5-step handle-resolution sequence per TDD §2.1 when `consecutive_failures >= scoring_config.max_consecutive_failures` (default 3): (a) check handle reachability, (b) if unreachable, search by `display_name`, (c) if a credible rename match is found, UPDATE `accounts.handle` with old→new handle logged at INFO — **NO backup promotion**, (d) only if name search yields no match → mark `status='inactive'` + promote next backup by `backup_rank` + log WARNING
+  - [ ] "Credible rename match" heuristic is documented in code: exact `display_name` match + verified badge + follower count within 50% of last-known value
+  - [ ] Retry debounce: registry respects `scoring_config.retry_rest_minutes` (default 30) between successive attempts on a failing account (tracked via `last_failure_at`)
+  - [ ] After validation, `SELECT COUNT(*) FROM accounts WHERE status='primary'` = 30 unless all backups exhausted (log ERROR in that case)
+  - [ ] `engagement_snapshots` row inserted on every post fetch
+  - [ ] `data/twitter_cookies.json` listed in `.gitignore` and not committed
+  - [ ] Unit tests (mocked twikit): post fetch, per-account transient failure → increment counter (no promotion), repeated failures → name search → rename path (handle updated, no promotion), repeated failures → name search → no match → backup promotion, all-backups-exhausted ERROR path, successful fetch resets counter
+  - [ ] Integration test (requires throwaway X account): fetch 3 posts from @BillAckman successfully; verify `consecutive_failures=0` after success
+- **Demo Artifact**: Console log + DB query output showing 3 posts fetched from @BillAckman with all fields populated, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-004-ingestion.txt`.
+- **Notes**: Test against 3 accounts only in initial runs (Ackman, Burry, Chanos) to minimize suspension risk during dev. Scale to 30 after Milestone 3 validation. The handle-resolution sequence is implemented even in the 3-account run so it can be unit-tested; a synthetic "renamed" fixture exercises the path without needing an actual renamed account.
 
----
-
-### TASK-004: Equity symbol whitelist loader
-- **Status**: Done (2026-04-16)
-- **Agent**: data-pipeline
+### TASK-005: Trading calendar + post collection window
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Low
 - **Depends on**: TASK-001
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: All ticker extraction results must be validated against a known US equity universe before entering the scoring pipeline. This whitelist is the final gate against false-positive tickers.
-- **Description**: Implement `extraction/equity_whitelist.py`. Downloads (or reads from `data/`) the S&P 500 constituents CSV from the GitHub dataset URL. Optionally loads a Russell 3000 symbol list. Exposes a `SymbolWhitelist` class with a `contains(ticker: str) -> bool` method.
+- **Context**: `pandas_market_calendars` is authoritative for every date decision in the project (prev_close, collection window, `is_trading_day`, forward-N-trading-days). No ad-hoc `datetime.weekday()` arithmetic anywhere — doing it naively would break on US holidays. This is used by the ingestion window filter (TASK-004), the outcome engine (Milestone 3), and the scorecard aggregator (Milestone 4).
+- **Description**: Implement `market_data/trading_calendar.py` with `TradingCalendar` class wrapping `pandas_market_calendars.get_calendar("NYSE")`. Methods: `is_trading_day(date) -> bool`, `previous_trading_day(date) -> date`, `next_trading_day(date) -> date`, `trading_days_after(date, n) -> date`, `trading_days_between(start, end) -> list[date]`, `collection_window(send_time_et) -> tuple[datetime, datetime]` (returns previous-close datetime to send-time datetime).
 - **Acceptance Criteria**:
-  - [x] `SymbolWhitelist.load()` reads `data/sp500_constituents.csv` if present; downloads from GitHub URL if not
-  - [x] `SymbolWhitelist.contains("AAPL")` returns `True`
-  - [x] `SymbolWhitelist.contains("CEO")` returns `False`
-  - [x] `SymbolWhitelist.contains("FNMA")` returns `True` (OTC/pink sheets may not be in S&P 500 — ensure FNMA is handled; expand to Russell 3000 list or maintain a manual supplement)
-  - [x] Whitelist loads in under 2 seconds
-  - [x] Unit tests: 10 tickers that should pass, 10 common false positives that should fail
-- **Notes**: FNMA and FMCC are OTC-traded and not in S&P 500. Include a `data/manual_supplement.txt` file for hand-curated tickers that are monitored but not in major indices.
+  - [ ] Uses `pandas_market_calendars.get_calendar("NYSE")`
+  - [ ] `is_trading_day(date(2026, 7, 4))` returns `False` (Independence Day)
+  - [ ] `is_trading_day(date(2026, 4, 18))` returns `False` (Good Friday)
+  - [ ] `previous_trading_day(date(2026, 4, 20))` returns `2026-04-17` (Monday → prior Thursday, Fri was Good Friday)
+  - [ ] `collection_window(datetime(2026, 4, 21, 9, 0, tz=ET))` returns `(prev_close_datetime, send_datetime)` with prev_close = 2026-04-17 16:00 ET (Friday 4/17 was a trading day)
+  - [ ] `trading_days_after(date(2026, 1, 1), 5)` correctly skips weekends and MLK Day
+  - [ ] Unit tests: weekend crossing, Good Friday, Memorial Day, Thanksgiving, Christmas, day-after-Thanksgiving early close (not handled at PoC — close = 16:00 always; documented)
+- **Demo Artifact**: Python REPL output showing 10 representative date queries (weekends, holidays, prev_close at month-boundaries), saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-005-calendar.txt`.
+- **Notes**: Early-close trading days (day after Thanksgiving, Christmas Eve) are treated as 16:00 ET close at PoC — the small data error is acceptable; documented in the class docstring.
 
----
-
-## Sprint 3: Ticker Extraction
-
-### TASK-005: Three-layer ticker extraction pipeline
-- **Status**: Done (2026-04-16)
-- **Agent**: data-pipeline
-- **Complexity**: Medium
-- **Depends on**: TASK-004
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: The three-layer pipeline (regex cashtag → uppercase regex → spaCy NER → Yahoo Finance resolver) is the core NLP component. False positives degrade signal quality; false negatives miss opportunities. The whitelist is the final gate for all layers.
-- **Description**: Implement `extraction/ticker_extractor.py` with `TickerExtractor` class. All three layers from TDD.md Section 2.2. Returns a list of `ExtractedTicker` Pydantic models with confidence levels.
-- **Acceptance Criteria**:
-  - [x] Layer 1 (cashtag regex) extracts `FNMA` from `"$FNMA is massively undervalued"` with confidence `HIGH`
-  - [x] Layer 2 (uppercase regex) extracts `TSLA` from `"TSLA could be a 10x"` with confidence `MEDIUM`
-  - [x] Common false positives (`CEO`, `IPO`, `ETF`, `GDP`, `FED`) are NOT extracted by Layer 2
-  - [x] Layer 3 (spaCy NER) extracts `AAPL` from `"Apple is a strong buy"` via Yahoo Finance resolver → `AAPL`
-  - [x] Layer 3 correctly handles `"Fannie Mae"` → `FNMA` via Yahoo Finance resolver
-  - [x] All extracted tickers are validated against `SymbolWhitelist` before being returned
-  - [x] Tickers extracted only by NER (confidence `LOW`) are flagged and not surfaced in morning email (but stored in DB)
-  - [x] Unit tests cover: cashtag extraction, uppercase extraction, NER extraction, false-positive filtering, whitelist gating, deduplication across layers
-  - [x] Test against the 4 sample texts from RESEARCH-REPORT.md Section 10.4 and verify expected outputs
-- **Notes**: Load spaCy model once at `TickerExtractor.__init__()`, not on each call. Yahoo Finance resolver should cache name→ticker lookups to avoid repeated API calls.
-
----
-
-## Sprint 4: LLM Scoring
-
-### TASK-006: LLM client interface and Claude Haiku implementation
-- **Status**: Done (2026-04-16)
-- **Agent**: data-pipeline
+### TASK-006: Ticker extraction (3-layer + whitelist)
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-001
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: The Claude Haiku client is the most expensive external dependency (~$0.20/month) but provides the conviction-level and argument-quality scores that no simpler model can produce. Pydantic validation of every response is mandatory — model output inconsistency is a known risk.
-- **Description**: Implement `scoring/llm_client.py` with `LLMClient` ABC and `PostScore` Pydantic model. Implement `scoring/claude_client.py` with `ClaudeHaikuClient`. System prompt loaded from `config/prompts/scoring_prompt.txt`.
+- **Context**: Three-layer pipeline (cashtag → uppercase + false-positive filter → spaCy NER → Yahoo Finance resolver → whitelist) per TDD §2.2. The whitelist is the final gate — extractions outside the S&P 500 + Russell 3000 + supplement (FNMA/FMCC) are dropped. spaCy NER uses `en_core_web_sm` v3.8.13 which misses some names (e.g., "GameStop") — Layer 1 and 2 catch most explicit mentions.
+- **Description**: Implement `extraction/equity_whitelist.py` (`SymbolWhitelist.load()` reads or downloads S&P 500 + Russell 3000 + supplement; `contains(ticker) -> bool`). Implement `extraction/ticker_extractor.py` (`TickerExtractor` with all three layers + Yahoo Finance ORG-name resolver; returns `ExtractedTicker` Pydantic models with `HIGH`/`MEDIUM`/`LOW` confidence). Whitelist-validate every extraction. Deduplicate across layers. Load spaCy model once at init.
 - **Acceptance Criteria**:
-  - [x] `LLMClient` ABC defines `score_post(post_text: str, author_handle: str) -> PostScore`
-  - [x] `PostScore` Pydantic model validates all fields from DATA-SOURCES.md Source 5: `tickers`, `direction`, `conviction_level` (0–5), `key_claim`, `argument_quality`, `time_horizon`, `market_moving_potential`, `rationale`
-  - [x] `ClaudeHaikuClient` reads system prompt from `config/prompts/scoring_prompt.txt`, not from code
-  - [x] `ClaudeHaikuClient` uses JSON instruction in system prompt (Anthropic SDK does not support `response_format` param — JSON enforced via prompt + Pydantic validation)
-  - [x] On Pydantic validation failure: logs raw response at WARNING, returns zero-score sentinel (`conviction_level=0`, `direction="AMBIGUOUS"`)
-  - [x] On `anthropic.APIError`: retries once after 5 seconds; returns sentinel on second failure
-  - [x] Every API call logs `provider`, `input_tokens`, `output_tokens`, `latency_ms`, `status` to `api_usage` table
-  - [x] Integration test: score 10 sample posts from `tests/fixtures/sample_posts.json` and verify all return valid `PostScore` objects (no Pydantic errors)
-  - [x] `ANTHROPIC_API_KEY` read from `settings`, not hardcoded
-- **Notes**: Use `claude-haiku-4-5` model or latest Haiku at time of implementation. Store the model version used in `signals.llm_model_version` for future re-scoring comparisons.
+  - [ ] `SymbolWhitelist` loads S&P 500 from `data/sp500.csv` (or downloads), Russell 3000 from `data/russell3000.csv`, supplement from `data/supplement.txt`
+  - [ ] `contains("AAPL")` = True; `contains("CEO")` = False; `contains("FNMA")` = True (via supplement)
+  - [ ] Layer 1 extracts `FNMA` from `"$FNMA is massively underpriced"` with confidence HIGH
+  - [ ] Layer 2 extracts `TSLA` from `"TSLA could 10x"` with confidence MEDIUM
+  - [ ] Layer 2 does NOT extract: CEO, IPO, ETF, GDP, CPI, FED, SEC, NYSE, USD
+  - [ ] Layer 3 extracts `AAPL` from `"Apple is a strong buy"` (via Yahoo Finance resolver) with confidence LOW
+  - [ ] Layer 3 resolves `"Fannie Mae"` → `FNMA`
+  - [ ] All extractions whitelist-validated before return
+  - [ ] Unit tests cover: cashtag, uppercase, NER, false-positive filter, whitelist gating, dedup across layers
+  - [ ] spaCy model loaded once at `TickerExtractor.__init__`
+- **Demo Artifact**: Unit test output + a script that runs extraction on 5 real Ackman posts and prints extracted tickers + confidence, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-006-extraction.txt`.
+- **Notes**: Cache the Yahoo Finance name→ticker lookups in a per-process dict to avoid repeated API calls within a single run.
 
----
-
-### TASK-007: Scoring engine (composite score computation)
-- **Status**: Done (2026-04-16)
-- **Agent**: data-pipeline
-- **Complexity**: Medium
-- **Depends on**: TASK-006, TASK-002
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: The composite score determines what the user sees each morning. Weights are stored in the `scoring_weights` DB table (not code constants) so they can be tuned without redeployment. The engagement normalization uses a rolling max-observed value to prevent any single viral post from skewing all scores.
-- **Description**: Implement `scoring/scoring_engine.py` with `ScoringEngine`. Loads component weights from `scoring_weights` DB table. Computes the 5-component composite score for each (post, ticker) pair.
-- **Acceptance Criteria**:
-  - [x] `ScoringEngine` loads weights from `scoring_weights` table on initialization (not hardcoded)
-  - [x] All 5 sub-scores (credibility, conviction, argument, engagement, historical) computed and stored in `signals` table
-  - [x] `conviction_level < 2` or `direction in ["NEUTRAL", "AMBIGUOUS"]` → `composite_score = 0.0`
-  - [x] Engagement normalization: `(view_count + 5 * repost_count) / max_observed_30d`, clamped to [0, 1]. When `view_count` is NULL: use median engagement for that investor
-  - [x] `composite_score` is in range `[0.0, 10.0]`
-  - [x] All sub-scores stored in `signals.score_credibility`, `.score_conviction`, etc.
-  - [x] Unit tests: verify each sub-score component independently with known inputs and expected outputs
-  - [x] Unit test: verify weights from DB are used (mock DB returning different weights and assert composite score changes accordingly)
-- **Notes**: `ScoringEngine` does not call Claude or twikit — it receives a `PostScore` and a `RawPost` already stored in DB. Keep it pure and testable.
-
----
-
-## Sprint 5: Market Data and Index Membership
-
-### TASK-008: Market data client (yfinance + Alpha Vantage fallback)
-- **Status**: Done (2026-04-16)
-- **Agent**: data-pipeline
+### TASK-007: Claude Haiku client + directional scoring
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-001
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: yfinance's silent stale-data failure is the most dangerous data quality risk in the pipeline. The freshness assertion is mandatory on every fetch. Alpha Vantage is the fallback but has a 25-request/day free tier — use sparingly.
-- **Description**: Implement `market_data/base.py` with `MarketDataClient` ABC. Implement `market_data/yfinance_client.py` with `YFinanceClient` including the freshness assertion. Implement `market_data/alpha_vantage_client.py` with `AlphaVantageClient`.
+- **Context**: Claude Haiku is the most expensive external dep (~$0.25/month) but produces the conviction-level and direction classification. Pydantic validation of every response is mandatory — parse failures return a zero-score sentinel rather than crashing. System prompt lives in `config/prompts/scoring_prompt.txt` (DATA-SOURCES.md §Source 5), not in code.
+- **Description**: Implement `scoring/llm_client.py` (`LLMClient` ABC, `PostScore` Pydantic model per DATA-SOURCES.md §Source 5). Implement `scoring/claude_client.py` (`ClaudeHaikuClient` — reads prompt from file, calls `anthropic.Anthropic`, Pydantic-validates response, logs to `api_usage` table, retries once on `APIError`, sentinel on parse fail).
 - **Acceptance Criteria**:
-  - [x] `MarketDataClient` ABC defines `fetch_open(ticker: str, date: date) -> float` and `fetch_close(ticker: str, date: date) -> float`
-  - [x] `YFinanceClient.fetch_open()` calls `yf.Ticker(ticker).history(period="5d")` and asserts `hist.index[-1].date() == date`
-  - [x] `YFinanceClient` raises `DataFreshnessError` on staleness; raises `DataUnavailableError` on empty response
-  - [x] `AlphaVantageClient` implements the same interface using `GLOBAL_QUOTE` endpoint; `ALPHA_VANTAGE_API_KEY` from settings
-  - [x] `YFinanceClient` batch fetch: `fetch_batch_close(tickers: list[str], date: date) -> dict[str, float]` uses `yf.download()` for efficiency
-  - [x] On `DataFreshnessError`: retry once after 60 seconds, then fall back to `AlphaVantageClient`; log fallback to `api_usage` table
-  - [x] Unit tests: mock yfinance returning today's data (pass), yesterday's data (fail → fallback), empty DataFrame (fail → fallback)
-  - [ ] Integration test (manual): fetch OHLC for 5 tickers and verify prices match expected range
-- **Notes**: Pin the exact yfinance version. Test the freshness assertion on a market holiday to verify it does not trigger a false alarm.
+  - [ ] `LLMClient` ABC defines `score_post(post_text, author_handle) -> PostScore`
+  - [ ] `PostScore` validates `tickers`, `direction`, `conviction_level` (0–5), `key_claim`, `argument_quality`, `time_horizon`, `market_moving_potential`, `rationale`
+  - [ ] System prompt read from `config/prompts/scoring_prompt.txt` (not inline)
+  - [ ] Model: `claude-haiku-4-5` or latest Haiku
+  - [ ] On Pydantic fail: logs raw response WARNING, returns sentinel (`conviction_level=0`, `direction="AMBIGUOUS"`, empty lists)
+  - [ ] On `APIError`: retries once after 5s; sentinel on second fail
+  - [ ] Every call logged to `api_usage` with `provider='anthropic'`, latency_ms, tokens, status
+  - [ ] Integration test: score 5 real posts and verify all return valid `PostScore`; zero parse errors
+- **Demo Artifact**: Output of scoring 5 fixture posts (including the FNMA Ackman example) with PostScore serialized as JSON, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-007-scoring.json`.
+- **Notes**: Store `llm_model_version`, raw response, token counts on every `signals` row for MVP audit and re-scoring.
 
----
-
-### TASK-009: Index membership resolver and cache
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Low
-- **Depends on**: TASK-002
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: Index tier (S&P 500 / NDX / Russell 2000 / MICRO) is displayed on every signal card in the morning email. Resolution uses a cache-first strategy: DB cache → S&P 500 CSV → finvizfinance live call. Refreshed weekly.
-- **Description**: Implement `market_data/index_resolver.py` with `IndexMembershipResolver`. Cache-first lookup: check `index_membership` table, fall back to S&P 500 CSV, fall back to finvizfinance live call. Implement a weekly refresh job method.
-- **Acceptance Criteria**:
-  - [x] `IndexMembershipResolver.resolve(ticker: str) -> str` returns one of: `"SP500"`, `"NDX"`, `"RUT"`, `"MICRO"`
-  - [x] SP500 CSV is loaded at init time and populates `index_membership` table if entries are stale or missing
-  - [x] Cache hit (ticker in `index_membership` with `last_updated` within 7 days) does not call finvizfinance
-  - [x] Cache miss calls finvizfinance; stores result in `index_membership` table
-  - [x] finvizfinance failure returns `"MICRO"` as safe default (log WARNING)
-  - [x] `IndexMembershipResolver.refresh_weekly()` method refreshes all cached entries older than 7 days
-  - [x] Unit tests: AAPL → SP500, GME → MICRO (not in any major index), TSLA → SP500 or NDX
-  - [x] `FNMA` resolves to `"MICRO"` (OTC, not in S&P 500 — confirm with finvizfinance response)
-- **Notes**: Nasdaq 100 membership is not in the S&P 500 CSV. For NDX: maintain a manual `data/ndx100_symbols.txt` file seeded from a current NDX constituent list.
-
----
-
-## Sprint 6: Signal Aggregation
-
-### TASK-010: Corroboration detector and signal aggregator
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Medium
-- **Depends on**: TASK-007
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: Corroboration ("if 2+ credible persons have similar posts on the same day") was explicitly named by the user as a distinct signal amplifier, not just a score boost. It gets a visible "CORROBORATED" tag in the email — it is a qualitative shift, not just a multiplier.
-- **Description**: Implement `scoring/corroboration.py` with `CorroborationDetector` and `scoring/aggregator.py` with `SignalAggregator`. The detector groups signals by (ticker, direction, date) and applies the corroboration multiplier. The aggregator ranks by final score and returns the top N.
-- **Acceptance Criteria**:
-  - [x] `CorroborationDetector.detect(signals: list[Signal]) -> list[Signal]` sets `corroboration_count` and `corroboration_bonus` on each signal
-  - [x] Signals with 2+ distinct investors (same ticker, same direction, same date): `corroboration_count >= 2`, `corroboration_bonus = settings.corroboration_multiplier` (default 1.5)
-  - [x] `final_score = composite_score * corroboration_bonus`
-  - [x] `corroboration_bonus` is read from `scoring_weights` or `settings`, not hardcoded
-  - [x] `SignalAggregator.rank(signals: list[Signal], top_n: int) -> list[Signal]` returns signals sorted by `final_score` descending, deduplicated by ticker (highest score per ticker kept)
-  - [x] Unit test: 3 investors posting LONG FNMA on same day → all three have `corroboration_count=3`
-  - [x] Unit test: 1 investor LONG FNMA + 1 investor SHORT FNMA → no corroboration (directions differ)
-  - [x] Unit test: same investor posts FNMA twice → still `corroboration_count=1` (distinct investors only)
-  - [x] Unit test: top_n=10 with 15 signals → returns 10 highest-scored, correctly ranked
-- **Notes**: Store corroboration data in `signals.corroboration_count` and `signals.corroboration_bonus` in DB — this is needed for the evening scorecard and future analysis.
-
----
-
-## Sprint 7: Email Generation and Delivery
-
-### TASK-011: Email provider interface and Resend implementation
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Low
-- **Depends on**: TASK-001
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: Email delivery is abstracted behind `EmailProvider` ABC so that swapping Resend to SendGrid or SES at Phase 2 is a single-file change. The Resend free tier (3,000/month) is sufficient for PoC.
-- **Description**: Implement `email/base.py` with `EmailProvider` ABC. Implement `email/resend_provider.py` with `ResendEmailProvider`. Create `EMAIL_REGISTRY`.
-- **Acceptance Criteria**:
-  - [x] `EmailProvider` ABC defines `send(to: str, subject: str, html_body: str, text_body: str) -> str` (returns message_id)
-  - [x] `ResendEmailProvider` reads `RESEND_API_KEY` from settings
-  - [x] `ResendEmailProvider.send()` calls `resend.Emails.send()` with both `html` and `text` fields populated
-  - [x] On send failure: retry once after 30 seconds, then raise `EmailDeliveryError` (do not retry further — avoid duplicate emails)
-  - [x] `ResendEmailProvider.send()` logs `provider='resend'`, `status`, `latency_ms` to `api_usage` table
-  - [x] `EMAIL_REGISTRY` maps `"resend"` to `ResendEmailProvider`; `SendGridEmailProvider` stub exists
-  - [ ] Integration test (manual): send a test email to `settings.recipient_email` and verify receipt
-- **Notes**: Sender domain must be verified in Resend dashboard before first use. Add setup instructions to README. Manual integration test deferred — requires verified Resend domain.
-
----
-
-### TASK-012: Morning watchlist email renderer
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Medium
-- **Depends on**: TASK-010, TASK-009, TASK-011
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: The signal card is the atomic UX unit. Every field was chosen deliberately in UX-SPEC.md. Plain-text-first rendering is non-negotiable — mobile at 7 AM is the primary context. The renderer must correctly handle edge cases: no signals, <10 signals, Burry posts that have since been deleted.
-- **Description**: Implement `email/renderer.py` for the morning watchlist. Render both HTML and plain-text versions. Implement all edge case states from UX-SPEC.md. Subject line format from UX-SPEC.md conventions section.
-- **Acceptance Criteria**:
-  - [x] Renders signal cards in the format from UX-SPEC.md wireframe: rank, direction badge, ticker, index tier, poster name, quote fragment (max 2–3 lines), track record badge, signal strength dots (●●●●○), corroboration flag
-  - [x] Track record badge shows `"Track record: building..."` when `investor_profiles.total_calls < 5`
-  - [x] Track record shows `"{X}/{N} ({pct}%)"` when `total_calls >= 5`
-  - [x] Signal strength dots: 5 levels mapped from composite score 0–10 (`●○○○○` to `●●●●●`)
-  - [x] Corroboration shown as `"CORROBORATED — N posters"` when `corroboration_count >= 2`
-  - [x] No-signals email renders the "No Signals Overnight" template from UX-SPEC.md
-  - [x] Subject line follows the convention: `Influence Monitor — {N} Signals Today [{Mon DD}] | Top: {TICKER} ({DIR}, {BARS})`
-  - [x] Plain-text version is complete and readable without HTML rendering (no information loss)
-  - [x] No CSS dependency for any required information — Unicode circles render as plain text fallback
-  - [x] Quote fragment uses stored post text from DB (never a live API call) — Burry deletion protection
-  - [x] SHORT signals display direction badge explicitly; SHORT stocks that drop are correctly labeled as HIT on scorecard (SHORT direction badge rendered in morning email; HIT/MISS labeling deferred to TASK-013 scorecard)
-  - [x] Unit tests: render with 10 signals (normal), 0 signals (no-signal email), 3 signals (fewer-than-10 email), one post with deleted text (graceful handling)
-- **Notes**: Email template files in `email/templates/`. The renderer reads from DB (new `get_morning_watchlist` repo method), not from in-memory objects, so it can be run independently for testing. HTML body wraps the plain-text body in `<pre>` with minimal inline styles — no load-bearing CSS. User-controlled content is HTML-escaped.
-
----
-
-### TASK-013: Evening scorecard email renderer
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Medium
-- **Depends on**: TASK-012
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: The evening scorecard is both the daily feedback loop and the commercial signal instrument. The running track record panel in the footer must persist correctly from the first trading day. SHORT signal HIT/MISS logic (negative return = HIT for short) is a quiet source of bugs — must be explicit.
-- **Description**: Implement the evening scorecard renderer in `email/renderer.py`. Performance table, running track record stats footer, edge case handling for halted stocks and no watchlist days.
-- **Acceptance Criteria**:
-  - [x] Performance table ranks signals by `return_pct` descending (after SHORT correction: for SHORT signals, negate `return_pct` for ranking purposes so the "best" SHORT is most negative)
-  - [x] Each row shows: rank (by performance), ticker, direction, open-to-close return, morning rank, HIT/MISS label
-  - [x] SHORT signals with negative `return_pct`: label `"✓ HIT  (short = gain)"`
-  - [x] SHORT signals with positive `return_pct`: label `"✗ MISS  (short went up)"`
-  - [x] Running track record footer: total signals scored, directional hit rate, avg gain on correct, avg loss on incorrect, corroborated signal accuracy, top performer this month
-  - [x] Track record age caveat shown when trading days < 20
-  - [x] Halted/price-missing stocks flagged as `"HALTED — no price data"` and excluded from hit rate
-  - [x] No-watchlist scorecard (quiet night) renders the appropriate message from UX-SPEC.md
-  - [x] Subject line: `Scorecard [{Mon DD}] — {X}/{N} correct | Best: {TICKER} {±%} (was #{rank})`
-  - [x] Plain-text version complete and correct
-  - [x] Unit tests: all-hits day, all-misses day, mixed day, day with halted stock, quiet-night scorecard
-- **Notes**: `EveningScorecardRenderer` added to `email/renderer.py`. New repo methods: `get_evening_scorecard_signals`, `get_running_stats`, `get_trading_days_scored`, `get_first_scored_date`, `get_top_performer_month`. Trading-days count sourced from scored signals (not `daily_summaries`) since TASK-014 not yet built. Separator between hits and misses uses `"─ " * 27` pattern.
-
----
-
-## Sprint 8: Scorecard Engine and Historical Accuracy
-
-### TASK-014: Scorecard engine (returns, HIT/MISS, accuracy tracking)
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Medium
-- **Depends on**: TASK-008, TASK-002
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: The scorecard engine is the core of the track record commercial asset. It must correctly handle SHORT signal HIT logic, update per-investor rolling accuracy, and produce the daily summary row that feeds the track record panel. All updates must be idempotent (safe to re-run if evening pipeline retries).
-- **Description**: Implement `scorecard/scorecard_engine.py` with `ScorecardEngine`. Fetches close prices, computes returns, updates HIT/MISS, updates investor rolling accuracy, writes daily summary.
-- **Acceptance Criteria**:
-  - [x] `ScorecardEngine.run_evening(signal_date: date)` is idempotent — skips signals where `close_price IS NOT NULL`; `upsert_daily_summary` updates existing row
-  - [x] `return_pct` computed as `(close_price - open_price) / open_price * 100`; stored with 4 decimal places
-  - [x] `is_hit` set correctly for LONG and SHORT; `NULL` when price data unavailable
-  - [x] Market context fields populated: `high_price`, `low_price`, `volume`, `avg_volume_30d`, `volume_ratio`
-  - [x] Regime context fields populated: `sp500_return_pct` (^GSPC), `vix_at_signal` (^VIX), `sector_return_pct` (sector ETF via `_SECTOR_ETF` mapping)
-  - [x] Stock context fields populated: `market_cap_at_signal`, `sector`, `industry` (yfinance ticker info)
-  - [x] `investor_profiles.rolling_accuracy_30d` updated via `compute_investor_rolling_accuracy(30d)`
-  - [x] `investor_profiles.total_calls` and `total_hits` updated via `get_investor_lifetime_stats`
-  - [x] `daily_summaries` row upserted with `summary_date`, `signals_surfaced`, `daily_hit_rate`, `pipeline_status`
-  - [x] On price fetch failure: `update_signal_prices(signal_id)` called with no kwargs (NULLs); counted as error, excluded from hit rate
-  - [x] Unit tests: LONG HIT, LONG MISS, SHORT HIT, SHORT MISS, NULL open_price skipped, fetch failure, idempotency, daily_hit_rate, one investor update per investor
-- **Notes**: `prev_close_price` not populated in this task (requires a prior-day close fetch — deferred to pipeline orchestrator TASK-015). Sector ETF map covers all GICS sectors.
-
----
-
-## Sprint 9: Pipeline Orchestration and Scheduling
-
-### TASK-015: Pipeline orchestrator (morning and evening entry points)
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
+### TASK-008: Five-factor scoring engine + conflict resolver + signal classifier
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: High
-- **Depends on**: TASK-003, TASK-005, TASK-006, TASK-007, TASK-010, TASK-012, TASK-013, TASK-014
-- **Estimated Effort**: L (4-8 hours)
-- **Context**: The orchestrator is the system's main entry point. It wires together all components in the correct order and handles all failure modes from TDD.md Section 6. Pipeline failures must never produce partial or misleading output — fail loudly with an operational notification email rather than sending a silent partial watchlist.
-- **Description**: Implement `pipeline.py` with `PipelineOrchestrator`. Two public methods: `run_morning(run_date: date)` and `run_evening(run_date: date)`. Implement `HolidayCalendar` for market holiday detection. Wire all components. Implement operational failure notification email.
+- **Depends on**: TASK-003, TASK-006, TASK-007
+- **Context**: The scoring engine combines Claude's output with the credibility seed (F1), virality (F2a/F2b), consensus (F3), amplifier (F4 — only for Act Now, see TASK-009), and liquidity (F5). All weights read from `scoring_config` table (not hardcoded). Conflict resolver handles same-poster repeats/flips and multi-poster mixed-direction splits per PRD §6.12. Classifier assigns ACT_NOW / WATCH / UNSCORED using virality thresholds.
+- **Description**: Implement `scoring/scoring_engine.py` (`ScoringEngine` loads weights from `scoring_config`; computes F1..F5 and composite conviction_score). Implement `scoring/conflict_resolver.py` (same-poster highest-virality selection for same-direction repeats; most-recent + `direction_flip=True` + penalty for same-poster flips; per-direction signal emission with `conflict_group='opposing_exists'` for 3+ posters mixed direction). Implement `scoring/classifier.py` (thresholds from `scoring_config`; `classify(post) -> 'ACT_NOW' | 'WATCH' | 'UNSCORED'`). Persist all factor scores individually on the `signals` row.
 - **Acceptance Criteria**:
-  - [ ] `run_morning()` executes in order: fetch posts → extract tickers → score posts → detect corroboration → rank signals → resolve index membership → render email → send email → write `daily_summaries` row
-  - [ ] `run_evening()` executes in order: fetch close prices → compute returns → update accuracy → render scorecard → send email → update `daily_summaries`
-  - [ ] `HolidayCalendar.is_trading_day(date) -> bool` returns `False` for weekends and US market holidays (NYSE calendar); no email sent on non-trading days
-  - [ ] On `IngestorError` (< 13 accounts fetched): send operational failure email, do NOT send morning watchlist, write failed `daily_summaries` row
-  - [ ] On any unhandled exception in `run_morning`: send operational failure email with exception type, message, and component; do NOT send partial watchlist
-  - [ ] Open price fetch (9:31 AM) is a separate `run_open_prices(run_date: date)` method called by a separate GitHub Actions job
-  - [ ] `python -m influence_monitor.pipeline morning` and `python -m influence_monitor.pipeline evening` are the CLI entry points
-  - [ ] Dry-run mode: `python -m influence_monitor.pipeline morning --dry-run` renders email to stdout without sending or writing to DB
-  - [ ] End-to-end test (manual): dry-run morning pipeline against live twikit data for 3 accounts and verify output
-- **Notes**: Operational failure notification goes to `settings.recipient_email` with subject prefix `[Influence Monitor] Pipeline FAILED`.
+  - [ ] `ScoringEngine` loads weights from `scoring_config` table (not hardcoded)
+  - [ ] All five sub-scores (F1 credibility, F2a virality_abs, F3 consensus, F4 amplifier, F5 liquidity) computed and persisted to `signals`
+  - [ ] F2b (virality_vel) computed only for WATCH tier; F4 (amplifier) populated only for ACT_NOW after TASK-009
+  - [ ] `conviction_level < 2` or `direction in ["NEUTRAL", "AMBIGUOUS"]` → `conviction_score = 0`, `tier = 'UNSCORED'`
+  - [ ] `ConflictResolver`: same-poster repeats → highest-virality retained, others dropped
+  - [ ] `ConflictResolver`: same-poster flip → `direction_flip=True` (always set), `penalty_applied = scoring_config.direction_flip_penalty` (default 0.0 — tag-only at PoC, non-zero values immediately activate penalty deduction with no code change), most-recent retained
+  - [ ] Test case: with `direction_flip_penalty=0.0` (default), a flipped signal renders the `⚠️ Direction changed` tag but its `final_score == conviction_score` (no deduction)
+  - [ ] Test case: with `direction_flip_penalty=2.0` (simulated DB update), the same flipped signal produces `final_score = conviction_score - 2.0`
+  - [ ] `ConflictResolver`: 3+ posters on same ticker mixed direction → one signal per direction group, `conflict_group='opposing_exists'` on each
+  - [ ] `classify` returns ACT_NOW when `views >= virality_views_threshold` OR `reposts >= virality_reposts_threshold`
+  - [ ] `classify` returns WATCH when below threshold but `views_per_hour >= watch_velocity_floor`
+  - [ ] Unit tests: single post scoring, same-poster repeat, same-poster flip, 3-poster mixed, threshold crossings, all weights DB-driven
+- **Demo Artifact**: Output of scoring 6 fixture posts (including one flip scenario and one 3-poster mixed scenario) showing all factor scores, tier assignment, and conflict handling, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-008-scoring.txt`.
+- **Notes**: ScoringEngine must be pure — receives `PostScore` + `RawPost` + account credibility, does not call external services. Testable in isolation.
+
+### TASK-009: Amplifier fetcher + market-cap resolver
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
+- **Depends on**: TASK-004, TASK-008
+- **Context**: Amplifier quality (F4) is fetched only for ACT_NOW candidates (~5–10/day) to respect twikit rate limits. Each retweeter is persisted in the `retweeters` table at fetch time (amplifier regression dataset for MVP). Cross-reference with the `accounts` table — any monitored account in the retweeter list = strong signal. Market-cap resolver uses `finvizfinance` with a weekly cache in the `price_cache` table.
+- **Description**: Implement `scoring/amplifier.py` (`AmplifierFetcher.fetch_and_score(post, source)` → calls `source.fetch_retweeters`, persists all to `retweeters` with `is_monitored` set by cross-ref against `accounts`; applies the TDD §2.3 formula: `min(10, monitored_count*3 + high_follower_count*1.5 + mid_follower_count*0.5)` with tiers from `scoring_config`). Implement `market_data/market_cap_resolver.py` (`MarketCapResolver.resolve(ticker)` → `price_cache` hit within 7 days returns cached; else finvizfinance call + insert; on failure returns `"Micro"`). Map cap class to liquidity modifier (0.8× Mega / 0.9× Large / 1.0× Mid / 1.15× Small / 1.3× Micro) from `scoring_config`.
+- **Acceptance Criteria**:
+  - [ ] `AmplifierFetcher.fetch_and_score(post, source)` fetches up to ~100 retweeters via `source.fetch_retweeters`
+  - [ ] All retweeters persisted to `retweeters` table with `is_monitored` flag set by cross-ref against `accounts`
+  - [ ] Amplifier score in [0, 10] per TDD §2.3 formula
+  - [ ] Called only for ACT_NOW signals (gated in `PipelineOrchestrator`, enforced in tests)
+  - [ ] `MarketCapResolver.resolve` returns one of: Mega, Large, Mid, Small, Micro
+  - [ ] 7-day cache in `price_cache`; cache miss calls finvizfinance
+  - [ ] finvizfinance failure returns `"Micro"` + WARNING log
+  - [ ] Market-cap string parsing: `"3911.50B"` → 3_911_500 (millions); `"498.22M"` → 498; `""` → None → Micro
+  - [ ] Liquidity modifier applied to conviction_score per class
+  - [ ] Unit tests: amplifier formula with 0/1/3 monitored matches; cap-class parsing edge cases; cache hit/miss
+- **Demo Artifact**: DB dump showing `retweeters` rows from a real Act Now Ackman post + the computed `score_amplifier`, saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-009-amplifier.txt`.
+- **Notes**: Follower tier thresholds (high 100K+, mid 10K-50K) are in `scoring_config` and configurable.
+
+### TASK-010: Morning pipeline orchestrator (end-to-end 3-account demo)
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: High
+- **Depends on**: TASK-002, TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, TASK-009
+- **Context**: Wires all Milestone 2 components into `PipelineOrchestrator.run_morning(run_date)`. First end-to-end run is against 3 accounts only (Ackman, Burry, Chanos) to validate the pipeline before scaling to 30. Real-data WhatsApp message replaces the hardcoded Milestone 1 fixture. Always-send rule honored: empty-signals message ships even when no signals are found.
+- **Description**: Implement `pipeline.py` with `PipelineOrchestrator.run_morning(run_date: date, account_limit: int | None = None)`. Steps: (1) validate accounts via `AccountRegistry`, (2) `source.fetch_recent_posts` for each active account in collection window via `TradingCalendar`, (3) insert posts + engagement_snapshots, (4) extract tickers per post, (5) Claude-score each, (6) build signals via ScoringEngine (F1/F2/F3/F5 at this stage), (7) apply ConflictResolver, (8) classify into ACT_NOW/WATCH/UNSCORED, (9) for ACT_NOW: AmplifierFetcher (F4), (10) persist signals, (11) render morning alert top-5 ACT_NOW + top-5 WATCH, (12) send via `TwilioWhatsAppDelivery` with CallMeBot fallback, (13) write `daily_summaries` and `messages_sent` rows. `account_limit=3` for the initial milestone demo; remove for full run. CLI: `python -m influence_monitor.pipeline morning [--account-limit N] [--dry-run] [--use-fixtures]`. `--use-fixtures`: bypasses steps 1–9 entirely (no twikit, no Claude), inserts records from `tests/fixtures/sample_signals.json` directly into the `signals` table with all factor scores pre-populated, then executes steps 10–13 (classify → render → send). This allows M2 deliverables to be validated with a real WhatsApp even on days with no organic signals.
+- **Acceptance Criteria**:
+  - [ ] `run_morning` executes the 13 steps in order; each step logs START/DONE
+  - [ ] Non-trading-day short-circuit: no fetch, no message, log INFO and exit
+  - [ ] Empty-signals day: "no signals" WhatsApp message still ships (always-send)
+  - [ ] AmplifierFetcher called only for ACT_NOW signals (assert in test)
+  - [ ] All signals persisted with factor scores populated
+  - [ ] `daily_summaries` row upserted with pipeline_status, accounts_fetched, signals_scored, signals_act_now, signals_watch
+  - [ ] On `AccountRegistry` all-inactive: operational WhatsApp sent, `pipeline_status='failed'`
+  - [ ] On any unhandled exception: operational WhatsApp sent, traceback logged, no partial message
+  - [ ] `--dry-run` renders to stdout without sending or writing to DB
+  - [ ] `--account-limit 3` demo: pipeline runs end-to-end against 3 real accounts; WhatsApp arrives on user's phone
+  - [ ] `--use-fixtures`: inserts `sample_signals.json` records into `signals` table with all factor scores set; then runs classification → rendering → delivery; sends a real WhatsApp with realistic signal blocks (no twikit or Claude credentials required)
+  - [ ] `python -m influence_monitor.pipeline morning --use-fixtures` completes successfully on any day, with or without organic signals
+- **Demo Artifact**: Two artifacts: (a) CLI log of the 3-account dry-run saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010-dryrun.txt`; (b) screenshot of the real WhatsApp morning alert — use `--use-fixtures` if no organic signals exist that day, or the live 3-account run if signals exist — saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010-live.png`.
+- **Notes**: Operational failure messages go to the same recipient phone — the user is both operator and user at PoC. `pipeline.py` is the CLI entry point.
 
 ---
 
-### TASK-016: GitHub Actions scheduling workflows
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Low
-- **Depends on**: TASK-015
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: GitHub Actions is the scheduler. Estimated usage is 105 min/month vs. 2,000 min free limit — no cost concern. Database persistence across runs requires a hosted SQLite solution (Turso free tier) or artifact management.
-- **Description**: Create `.github/workflows/morning_pipeline.yml` and `.github/workflows/evening_pipeline.yml`. Configure all required secrets. Set up database persistence (Turso free tier preferred over artifact-based).
+## Milestone 3: Evening Outcome + Excess/Vol Score + Scorecard
+
+> **Goal**: After-market run fetches OHLC + SPY context, computes overnight/tradeable returns AND excess/vol score for every Act Now + Watch List signal from the morning. User receives the evening WhatsApp summary with three metrics per stock plus the 30-day per-poster scorecard ranked by average excess/vol.
+> **Acceptance Criteria**: `python -m influence_monitor.pipeline evening` runs after close; WhatsApp arrives with per-stock outcome blocks (overnight / tradeable / excess-vol) and the scorecard. User validates the SPY-parenthetical transparency line and the `⚠️ Sample still building` warning behavior.
+> **Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-3/`
+> **Review Checkpoint**: User reviews at least 2 evening summaries and confirms the three-metric display is readable. Approves before Milestone 4.
+> **Depends on**: Milestone 2 review passed
+> **Status**: To Do
+
+### TASK-011: Market data client (yfinance + Alpha Vantage fallback) + SPY + configurable stock vol
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
+- **Depends on**: TASK-005
+- **Context**: yfinance silent-stale-data is the #1 data-quality risk. Freshness assertion on every fetch is mandatory. Alpha Vantage is the fallback with 25 req/day — use sparingly. Also fetches SPY for the excess-return computation and the prior-`vol_lookback_days` vol window for each stock (default 20, configurable via `scoring_config.vol_lookback_days`).
+- **Description**: Implement `market_data/base.py` (`MarketDataClient` ABC). Implement `market_data/yfinance_client.py` (`YFinanceClient` with `fetch_ohlc(ticker, date)`, `fetch_close(ticker, date)`, `fetch_stock_vol(ticker, date, lookback_days)`, `fetch_spy_return(date)` — all with freshness assertion and single-retry). Implement `market_data/alpha_vantage_client.py` (`AlphaVantageClient` fallback via `GLOBAL_QUOTE`). Batch-fetch helper for efficiency. The lookback is passed as a parameter — callers read `scoring_config.vol_lookback_days` and pass it in; the client does not hardcode 20.
 - **Acceptance Criteria**:
-  - [ ] Morning workflow triggers at cron `0 11 * * 1-5` (7:00 AM ET = 11:00 UTC)
-  - [ ] Open price workflow triggers at cron `31 13 * * 1-5` (9:31 AM ET = 13:31 UTC)
-  - [ ] Evening price fetch triggers at cron `5 20 * * 1-5` (4:05 PM ET = 20:05 UTC)
-  - [ ] Evening send triggers at cron `30 21 * * 1-5` (5:30 PM ET = 21:30 UTC)
-  - [ ] All workflows install dependencies via `pip install -r requirements.txt`
-  - [ ] All workflows run `python -m spacy download en_core_web_sm` before pipeline execution
-  - [ ] All secrets referenced as `${{ secrets.VARIABLE_NAME }}` — no secrets hardcoded in workflow files
-  - [ ] GitHub repository secrets documented in README setup instructions: `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `TWITTER_USERNAME`, `TWITTER_EMAIL`, `TWITTER_PASSWORD`, `DATABASE_URL`, `RECIPIENT_EMAIL`
-  - [ ] Workflows include `continue-on-error: false` so failures are visible in Actions UI
-  - [ ] Manual trigger (`workflow_dispatch`) available on all workflows for ad-hoc testing
-- **Notes**: Turso free tier provides 8GB storage and 1B row reads/month — well within PoC needs. Alternatively, store SQLite file as workflow artifact with retention of 90 days. Document chosen approach in README.
+  - [ ] `MarketDataClient` ABC defines the four fetch methods; `fetch_stock_vol` takes `lookback_days` as a required parameter (no default of 20 in the client)
+  - [ ] `YFinanceClient.fetch_ohlc` asserts `hist.index[-1].date() == date`; raises `DataFreshnessError` on stale
+  - [ ] On `DataFreshnessError`: retry once (60s), then fall back to `AlphaVantageClient`; log `provider='yfinance_fallback'` to `api_usage`
+  - [ ] `fetch_stock_vol(ticker, date, lookback_days)` returns daily-return stdev over the prior `lookback_days` trading days of the ticker at `date`, using `TradingCalendar.trading_days_between` for date alignment
+  - [ ] `fetch_spy_return(date)` returns `(today_close - prev_close) / prev_close` for SPY using `TradingCalendar.previous_trading_day`
+  - [ ] Batch `fetch_closes(tickers, date)` uses `yf.download` for efficiency
+  - [ ] Unit tests: mock yfinance returning today (pass), yesterday (fail + fallback), empty (fail + fallback); stdev computation on known-vol sample for lookback_days=20 AND a second non-default value (e.g., 10) to confirm the parameter threads through
+- **Demo Artifact**: CLI output showing `fetch_ohlc` for AAPL + `fetch_spy_return` + `fetch_stock_vol(lookback_days=20)` for 3 real tickers, saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-011-market-data.txt`.
+- **Notes**: Pin yfinance version. Annualize vs. keep daily vol is a modeling choice — we keep daily stdev (matches the daily overnight return numerator; excess/vol is then dimensionally `daily_return / daily_return` which is unitless and interpretable). Documented in the function docstring. The `stock_20d_vol` column name in `signals` is retained for schema stability even if the lookback is retuned; the actual lookback used on any given day is recoverable via `scoring_config.vol_lookback_days` at query time.
+
+### TASK-012: Outcome engine + scorecard aggregator
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
+- **Depends on**: TASK-011, TASK-003
+- **Context**: Per PRD §6.13–14 and the critical decision updates: overnight_return uses `TradingCalendar.previous_trading_day(today)` for prev_close — handles weekends AND holidays. Excess/vol replaces win-rate entirely: `(stock_return - spy_return) / stock_vol` where the vol lookback window is read from `scoring_config.vol_lookback_days` (default 20). Scorecard aggregator groups by poster (not ticker) and averages excess/vol across the 30-day window. Idempotent for safe re-runs.
+- **Description**: Implement `outcome/outcome_engine.py` (`OutcomeEngine.compute_and_store(signal_date)` — for every signal where `overnight_return IS NULL`: read `vol_lookback_days` from `scoring_config`; fetch today_open + today_close + prev_close (from `TradingCalendar.previous_trading_day`) + spy_return + stock_vol (via `fetch_stock_vol(ticker, date, lookback_days=vol_lookback_days)`); compute and persist overnight_return, tradeable_return, excess_vol_score, price_data_source into the `stock_20d_vol` column — the column name is retained for schema stability). Implement `outcome/scorecard_aggregator.py` (`ScorecardAggregator.top_n_posters(as_of, window_days=30, top_n=5)` returns rows of `{handle, avg_excess_vol, n_signals}` sorted desc). `⚠️ Sample still building` is emitted when `trading_days_with_signals < 20`.
+- **Acceptance Criteria**:
+  - [ ] `OutcomeEngine.compute_and_store` is idempotent (skips signals with non-null `excess_vol_score`)
+  - [ ] `prev_close` resolved via `TradingCalendar.previous_trading_day` — Monday correctly uses Friday close
+  - [ ] `overnight_return`, `tradeable_return`, `spy_return`, `stock_20d_vol`, `excess_vol_score` persisted to `signals` with 6 decimal places
+  - [ ] On any price fetch fail: `price_data_source='unavailable'`, outcome columns NULL, signal excluded from scorecard
+  - [ ] `ScorecardAggregator.top_n_posters` returns top 5 by avg excess/vol across all scored signals from each poster in window
+  - [ ] Returns `n_signals` count alongside avg (for transparency in "building..." state)
+  - [ ] Identifies when `trading_days_with_signals < 20` so renderer can emit warning
+  - [ ] Unit tests: LONG + up stock → positive excess_vol; SHORT + up stock → negative excess_vol (correct sign); price fetch fail → NULL + unavailable marker; idempotency; weekend-crossing prev_close; Good-Friday-crossing prev_close
+- **Demo Artifact**: Console output showing `compute_and_store` run against a simulated Friday → Monday weekend (fixture data) producing correct excess_vol values, saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-012-outcome.txt`.
+- **Notes**: No win-rate metric anywhere. No binary is_hit. Excess/vol is the only quality metric.
+
+### TASK-013: Evening summary renderer + full pipeline orchestration
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
+- **Depends on**: TASK-012, TASK-010
+- **Context**: Evening summary per PRD §6.17 + UX-SPEC.md + the UX-SPEC override decisions in PRD §8: three metrics per stock (overnight / tradeable / excess-vol with SPY and 20d-vol in parentheses). SHORT annotations `_(short = gain)_` on negative moves. Watch List shown separately. 30-day scorecard is per-poster ranked by average excess/vol. `⚠️ Sample still building` warning when <20 days. Always-send: ships on every trading day even with zero outcomes. `PipelineOrchestrator.run_evening` wires fetch → compute → render → send.
+- **Description**: Implement `rendering/evening_renderer.py` (`render_evening(outcomes, scorecard_rows, trading_days_scored, as_of_date) -> str`). Implement `PipelineOrchestrator.run_evening(run_date)` calling OutcomeEngine + ScorecardAggregator + EveningRenderer + `TwilioWhatsAppDelivery`. Always-send message when no outcomes. CLI: `python -m influence_monitor.pipeline evening [--dry-run] [--use-fixtures]`. `--use-fixtures`: inserts records from `tests/fixtures/sample_outcomes.json` (pre-computed outcome data) into the `signals` table, then runs ScorecardAggregator → render → send. Allows M3 deliverables to be validated with a real WhatsApp on any day.
+- **Acceptance Criteria**:
+  - [ ] Per-stock outcome block shows three metrics: `+X.X% overnight / +X.X% tradeable / +X.XX excess-vol (SPY: +X.X% | vol: X.X%)`
+  - [ ] SHORT + negative move → `_(short = gain)_` annotation; SHORT + positive → `_(short went up)_`
+  - [ ] Watch List outcomes shown in a separate section ("Watch List (monitored only)")
+  - [ ] 30-day per-poster scorecard: top 5 by avg excess_vol desc; each row shows `@Handle — avg excess-vol +X.XX (N signals)`
+  - [ ] `⚠️ Sample still building — treat as watchlist only (< 20 days)` shown when `trading_days_scored < 20`
+  - [ ] Empty-outcomes day: "No outcomes to report today." still ships (always-send)
+  - [ ] Disclaimer footer present
+  - [ ] `run_evening` trigger on non-trading days short-circuits without sending
+  - [ ] Integration test (dry-run): full evening run against Milestone 2's DB produces a correctly formatted message under 4,000 chars
+  - [ ] `--use-fixtures`: inserts `sample_outcomes.json` records into `signals` table; runs ScorecardAggregator → render → delivery; sends real WhatsApp with all three metrics and scorecard visible
+  - [ ] `python -m influence_monitor.pipeline evening --use-fixtures` completes successfully on any day, with or without organic signals
+  - [ ] Live test: real evening WhatsApp arrives (use `--use-fixtures` if no organic outcomes exist)
+- **Demo Artifact**: Screenshot of a real evening WhatsApp summary on the user's phone — use `--use-fixtures` if no organic outcomes exist that day — saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-013-evening.png`. Plus a dry-run sample text at `TASK-013-sample.txt`.
+- **Notes**: Message length budget: target <40 lines; hard cap 4,000 chars.
 
 ---
 
-## Sprint 10: Historical Accuracy and Testing
+## Milestone 4: Full 30-Account Production + Scheduling
 
-### TASK-017: Historical accuracy tracking and multi-horizon return backfill
-- **Status**: Done (2026-04-17)
-- **Agent**: data-pipeline
-- **Complexity**: Low
+> **Goal**: Pipeline runs unattended on schedule against the full 30 primary accounts (with backup promotion). User receives morning + evening WhatsApp messages every trading day for a ~4-week validation window.
+> **Acceptance Criteria**: After 5 consecutive trading days, user confirms the morning alert arrives before 9:00 AM ET and the evening summary arrives between 4:30–5:30 PM ET on every trading day, with no manual intervention.
+> **Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-4/`
+> **Review Checkpoint**: 5 trading days of reliable automated delivery before PoC validation begins in earnest.
+> **Depends on**: Milestone 3 review passed
+> **Status**: To Do
+
+### TASK-014: GitHub Actions scheduling workflows + Turso deployment
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), architect (phase review)
+- **Complexity**: Medium
+- **Depends on**: TASK-013
+- **Context**: GitHub Actions cron runs the pipeline unattended. Three workflows: market-hours poll (every 2h during 9 AM–5 PM ET), morning send (9:00 AM ET), evening send (4:45 PM ET). Turso hosts the DB so data persists across ephemeral runners. DST handling: cron runs at both EST and EDT UTC offsets OR uses a single UTC schedule with ET-aware early-exit logic inside the pipeline.
+- **Description**: Create `.github/workflows/market_hours_poll.yml`, `morning_alert.yml`, `evening_summary.yml`. Configure all secrets via `${{ secrets.* }}`. Verify Turso DB connection from Actions runner. Handle EST/EDT DST: use UTC cron but pipeline checks `is_trading_day` + ET-local time boundaries before running.
+- **Acceptance Criteria**:
+  - [ ] `market_hours_poll.yml`: cron every 2h UTC covering 9 AM–5 PM ET; pipeline internally checks ET-local hours to early-exit outside window
+  - [ ] `morning_alert.yml`: cron `0 13 * * 1-5` (EST: 8 AM ET — buffer for processing; pipeline sends at 9:00 AM ET sharp by waiting if needed)
+  - [ ] `evening_summary.yml`: cron `45 20 * * 1-5` (EST: 3:45 PM ET — buffer for price availability; pipeline sends 4:45 PM ET)
+  - [ ] All workflows: `pip install -r requirements.txt` + `python -m spacy download en_core_web_sm` + set `TURSO_URL` + `TURSO_TOKEN`
+  - [ ] All secrets from TDD §7 registered in GitHub Actions Secrets
+  - [ ] `continue-on-error: false` so failures surface in Actions UI
+  - [ ] `workflow_dispatch` trigger available on all three for manual runs
+  - [ ] Documented DST caveat per TDD §7: on March (spring-forward) and November (fall-back) transition days, UTC cron fires will drift 1 hour in ET; pipeline's internal ET-local-time check early-exits outside the target window. Acceptable for PoC — no code change. README captures the caveat.
+- **Demo Artifact**: Screenshot of GitHub Actions showing 3 successful scheduled runs (one each of poll + morning + evening), saved to `docs/influence-post-monitoring/poc/demos/milestone-4/TASK-014-actions.png`.
+- **Notes**: Turso free tier covers PoC comfortably; README documents the setup (create DB, capture `libsql://` URL and token).
+
+### TASK-015: Full 30-account live run + account validation verification
+- **Status**: To Do
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Medium
 - **Depends on**: TASK-014
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: `signals.return_5d`, `signals.return_10d`, and `signals.return_30d` are in the schema from day one as forward-compatible columns. A nightly backfill job populates them for signals old enough to have the data. These columns support future ML model training, the API tier, and leaderboard features without schema migration.
-- **Description**: Implement a `backfill_returns` method in `ScorecardEngine` that, for each signal older than 5/10/30 trading days with a NULL `return_5d`/`return_10d`/`return_30d`, fetches the close price on the Nth trading day after `signal_date` and computes the return.
+- **Context**: Remove the `account_limit=3` safeguard and run against all 30 primaries. `AccountRegistry` validates all handles and promotes backups for any inactive primary. Twitter suspension risk increases at scale — polling stays at 2h cadence.
+- **Description**: Remove `--account-limit` default from pipeline. Run full morning + evening pipeline against all 30 primaries for 5 consecutive trading days. Verify `AccountRegistry` correctly handles any inactive primary (e.g., Citron reduced activity, placeholder B14). Log all promotions to `accounts.status` changes.
 - **Acceptance Criteria**:
-  - [ ] `backfill_returns(as_of_date: date)` finds all signals where `return_5d IS NULL` and `signal_date <= as_of_date - 5 trading days`
-  - [ ] Fetches close price for each ticker on `signal_date + 5 trading days` using `YFinanceClient`
-  - [ ] Computes `return_5d = (close_5d - open_price) / open_price * 100`; stores in `signals.return_5d`
-  - [ ] Same logic for `return_10d` (10 trading days) and `return_30d` (30 trading days)
-  - [ ] Backfill is idempotent — safe to run multiple times without changing already-set values
-  - [ ] Added to the evening pipeline (runs after scorecard computation)
-  - [ ] Unit tests: signal from 6 days ago with NULL `return_5d` gets populated; signal from 3 days ago remains NULL; signal from 31 days ago with NULL `return_30d` gets populated
-- **Notes**: Weekend and holiday counting uses `HolidayCalendar.trading_days_after(date, n)` helper method.
+  - [ ] Morning pipeline processes all 30 active accounts within the 9:00 AM ET send deadline
+  - [ ] Any inactive primary is promoted by `AccountRegistry` on startup; logged via WARNING
+  - [ ] `accounts` table shows `status` transitions for inactive primaries → `status='inactive'`; promoted backup → `status='primary'`
+  - [ ] 5 consecutive trading days of successful morning + evening sends with zero manual intervention
+  - [ ] No twikit suspension or 429 errors during the 5-day run (if any occur: documented in `BACKLOG.md` and acceptance relaxed to 3 successful days)
+  - [ ] `daily_summaries` shows `pipeline_status='ok'` on all 5 days
+  - [ ] User's phone receives 10 messages (5 morning + 5 evening) over the validation window
+- **Demo Artifact**: Screenshots of the 10 messages arranged in a grid + a DB export of `daily_summaries` for the 5-day window, saved to `docs/influence-post-monitoring/poc/demos/milestone-4/TASK-015-5day-run.png` and `TASK-015-summaries.csv`.
+- **Notes**: If Burry (account #12) is inactive during this window: validate that his backup promotion works. If the throwaway X account gets suspended: TASK moves to Blocked; user creates a new throwaway or accelerates the MVP tweepy swap.
 
 ---
 
-### TASK-018: End-to-end integration test and sample data fixtures
-- **Status**: Done (2026-04-17)
+## Milestone 5: Hardening, Testing, Documentation
+
+> **Goal**: Integration tests, security review, and README complete. Known-good state ready for 4-week personal-use PoC validation.
+> **Acceptance Criteria**: `pytest` passes with 80%+ coverage on core modules. Security review is clean. README is complete with setup, runbook, and Phase 2 notes. `PHASE-REVIEW.md` drafted at PoC close.
+> **Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-5/`
+> **Review Checkpoint**: User approves the README and security review before final PoC sign-off.
+> **Depends on**: Milestone 4 review passed
+> **Status**: To Do
+
+### TASK-016: End-to-end integration tests + sample fixtures
+- **Status**: To Do
 - **Agent**: test-validator
 - **Complexity**: Medium
-- **Depends on**: TASK-015, TASK-016
-- **Estimated Effort**: M (2-4 hours)
-- **Context**: The integration test validates that the full morning and evening pipeline can run end-to-end with realistic fixtures without requiring live API credentials. This is the quality gate before marking the PoC as operational.
-- **Description**: Create `tests/fixtures/sample_posts.json` with 10 realistic sample posts covering: high-conviction LONG (FNMA-style), high-conviction SHORT, neutral post, Burry-style deleted post, corroboration scenario (2 investors, same ticker). Implement end-to-end test using mock twikit and real Claude/yfinance (or all mocked for CI).
+- **Depends on**: TASK-015
+- **Context**: Integration tests validate the full pipeline end-to-end with mocked external deps. Fixtures cover: high-conviction LONG (FNMA-style), high-conviction SHORT (Burry-style), neutral post, direction-flip scenario, 3-poster mixed-direction scenario, Burry-deleted post, price-data-unavailable case.
+- **Description**: Create `tests/fixtures/sample_posts.json` (10 realistic posts). Implement end-to-end tests: morning pipeline with all scenarios → render → assert content; evening pipeline with price fixtures → assert excess_vol + scorecard.
 - **Acceptance Criteria**:
-  - [ ] `tests/fixtures/sample_posts.json` contains 10 sample posts with realistic text, engagement metrics, and author handles
-  - [ ] `pytest tests/` runs without requiring real API credentials (all external calls mocked)
-  - [ ] Morning pipeline integration test: 10 sample posts → extract tickers → score → rank → render email → verify email content contains expected top ticker
-  - [ ] Corroboration test: 2 posts about same LONG ticker → morning email shows "CORROBORATED" tag
-  - [ ] Evening scorecard test: morning signals + injected price data → correct HIT/MISS → correct running stats
-  - [ ] No-signal test: 0 qualifying posts → "no signals overnight" email rendered correctly
-  - [ ] Test coverage on `extraction/`, `scoring/`, `scorecard/`, `email/` modules >= 80%
-  - [ ] `pytest --cov=influence_monitor tests/` passes with >= 80% coverage on targeted modules
-- **Notes**: Use `unittest.mock.patch` or pytest fixtures for mocking twikit, Claude, yfinance, and Resend. Store test DB in `:memory:` SQLite.
+  - [ ] `sample_posts.json` has 10 fixtures covering: Ackman-FNMA LONG, Burry SHORT, neutral, direction flip (same poster), 3-poster mixed, deleted post, high virality, low virality (Watch only), multi-ticker post, corroboration (2 posters same ticker same direction)
+  - [ ] Morning pipeline test: fixtures → Claude mock → scoring → classify → render → assert top ticker, tier, corroboration tag
+  - [ ] Evening pipeline test: signals + price fixtures → outcome → scorecard → render → assert three-metric format + `Sample still building` when `days<20`
+  - [ ] Conflict-resolution test: direction flip scenario → `⚠️ Direction changed` tag rendered
+  - [ ] Multi-poster test: 3 posters mixed → both direction blocks rendered with `⚠️ Conflicted`
+  - [ ] Price-unavailable test: outcome row renders `— price data unavailable`
+  - [ ] `pytest --cov=influence_monitor tests/` passes with ≥80% coverage on `extraction/`, `scoring/`, `outcome/`, `rendering/`
+  - [ ] `pytest tests/` runs with no live-credential requirements (all external deps mocked)
+- **Demo Artifact**: Output of `pytest --cov` with coverage report + the fixture file, saved to `docs/influence-post-monitoring/poc/demos/milestone-5/TASK-016-tests.txt` and `TASK-016-fixtures.json`.
+- **Notes**: Use `unittest.mock.patch` for twikit, Claude, yfinance, Twilio. Store test DB in `:memory:` SQLite.
 
----
-
-## Sprint 11: Documentation and Deployment
-
-### TASK-019: README and setup documentation
-- **Status**: Done (2026-04-17)
+### TASK-017: README + setup documentation
+- **Status**: To Do
 - **Agent**: content-writer
 - **Complexity**: Low
-- **Depends on**: TASK-018
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: The README is the entry point for future setup (including Phase 2 onboarding). It must include the "Built with Claude Code" attribution required by CLAUDE.md and complete setup instructions including the twikit cookie setup procedure (which requires a one-time manual step).
-- **Description**: Write `projects/influence-post-monitoring/README.md` with complete setup guide, architecture overview, configuration reference, and operational runbook.
+- **Depends on**: TASK-016
+- **Context**: README is the onboarding surface — must include the "Built with Claude Code" attribution, complete setup (Twilio sandbox activation, twikit auth, Turso DB setup, GitHub Actions secrets), the daily runbook, and MVP migration notes (tweepy swap, public leaderboard page).
+- **Description**: Write `projects/influence-post-monitoring/README.md` with: project description, `> Built with [Claude Code](https://claude.ai/code)` line, setup guide, architecture overview, configuration reference, known limitations, MVP migration notes.
 - **Acceptance Criteria**:
-  - [ ] README begins with project description followed immediately by `> Built with [Claude Code](https://claude.ai/code)`
-  - [ ] Setup section covers: clone, venv creation, `pip install -r requirements.txt`, `python -m spacy download en_core_web_sm`, `.env` configuration from `.env.example`
-  - [ ] twikit authentication setup: one-time `python -m influence_monitor.pipeline auth` step to generate `twitter_cookies.json`
-  - [ ] Resend domain verification step documented
-  - [ ] GitHub Actions secrets list with description of each
-  - [ ] Database initialization: `python -m influence_monitor.db.repository --init`
-  - [ ] Dry-run instructions: `python -m influence_monitor.pipeline morning --dry-run`
-  - [ ] Architecture overview: 2-paragraph summary of the pipeline components
-  - [ ] Known limitations section: twikit ToS, yfinance staleness risk, Hindenburg account status
-  - [ ] Phase 2 migration notes: twikit → official API, SQLite → PostgreSQL swap instructions
-- **Notes**: No marketing copy. No emojis. Plain, technical documentation.
+  - [ ] README begins with project description + `> Built with [Claude Code](https://claude.ai/code)` directly below
+  - [ ] Setup: clone, venv, `pip install -r requirements.txt`, spaCy model download, `.env` from `.env.example`
+  - [ ] Twilio WhatsApp Sandbox setup walkthrough (with console links)
+  - [ ] twikit throwaway-account + `python -m influence_monitor.ingestion.twitter_twikit --login` step for initial cookie save
+  - [ ] Turso account setup + `TURSO_URL` / `TURSO_TOKEN` capture
+  - [ ] GitHub Actions secrets list
+  - [ ] Database init command: `python -m influence_monitor.db.repository --init`
+  - [ ] Dry-run commands: `--dry-run` morning and evening
+  - [ ] Architecture overview (2-para summary of the pipeline components)
+  - [ ] Known limitations: twikit ToS, Burry-deletion pattern, yfinance staleness, DST handling caveat
+  - [ ] MVP migration notes: `SOCIAL_SOURCE=twitter_official` tweepy swap, public leaderboard page plan, weight recalibration via SQL
+  - [ ] Regulatory disclaimer prominent: "This is information about public posts, not investment advice."
+- **Demo Artifact**: The finished README.md (link to file).
+- **Notes**: No marketing copy. No emojis. Technical documentation only.
 
----
-
-### TASK-020: Final security review and pre-deployment checklist
-- **Status**: Done (2026-04-17)
+### TASK-018: Security review + PHASE-REVIEW.md
+- **Status**: To Do
 - **Agent**: architect
 - **Complexity**: Low
-- **Depends on**: TASK-019
-- **Estimated Effort**: S (< 2 hours)
-- **Context**: Security review before first live run. The twikit credentials and Twitter cookie file are particularly sensitive — equivalent to a Twitter account password. Any accidental commit of these would require immediate credential rotation.
-- **Description**: Conduct security review against CLAUDE.md Security Rules and TDD.md Section 5. Verify `.gitignore` completeness, secret usage patterns, external input validation, and rate limiting compliance. Produce a checklist with pass/fail for each item.
+- **Depends on**: TASK-017
+- **Context**: Security review is the architect's gate before PoC → MVP. Covers CLAUDE.md security rules + architect-specific PII review, rate-limit abuse check, data-flow audit. `PHASE-REVIEW.md` summarizes the PoC: what worked, what didn't, what to promote from BACKLOG, Beta-decision commercial-signal reading.
+- **Description**: Conduct security review against CLAUDE.md + TDD §5. Write `docs/influence-post-monitoring/poc/PHASE-REVIEW.md` per the phase-review template.
 - **Acceptance Criteria**:
-  - [ ] `git grep -r "ANTHROPIC_API_KEY\|RESEND_API_KEY\|TWITTER_PASSWORD" -- '*.py' '*.json' '*.yaml'` returns no hardcoded secrets
-  - [ ] `data/twitter_cookies.json` confirmed absent from git history and in `.gitignore`
-  - [ ] `data/signals.db` confirmed absent from git history and in `.gitignore`
-  - [ ] All external API responses validated through Pydantic models before use (Claude) or explicit field access with defaults (twikit)
-  - [ ] Ticker whitelist validation confirmed active in `TickerExtractor` (arbitrary strings cannot reach scoring pipeline)
-  - [ ] yfinance freshness assertion confirmed active in `YFinanceClient`
-  - [ ] No `print()` statements in production code — `logging` module used throughout
-  - [ ] `.env.example` contains no real values — all placeholders
-  - [ ] GitHub Actions workflow files reference secrets via `${{ secrets.* }}` only
-  - [ ] Rate limiting: twikit usage confirmed at <= 20 posts × 17 accounts × 2 runs/day = 680 requests/day
-  - [ ] Review sign-off: architect approves for first live run
-- **Notes**: This task gates the first live pipeline run. Do not run against real accounts until this task passes.
+  - [ ] No secrets in code or `.env.example` (grep for `TWIKIT_PASSWORD`, `TWILIO_AUTH_TOKEN`, `ANTHROPIC_API_KEY`, `TURSO_TOKEN` in py/json/yaml)
+  - [ ] `data/twitter_cookies.json` confirmed gitignored + absent from `git log`
+  - [ ] All external API responses Pydantic-validated (Claude) or defensively accessed (twikit, yfinance)
+  - [ ] Ticker whitelist validation confirmed active
+  - [ ] yfinance freshness assertion confirmed active
+  - [ ] No `print()` in production code
+  - [ ] PII storage review: user phone number is the only PII; Turso-encrypted-at-rest; no redistribution
+  - [ ] Rate-limit abuse check: twikit ~1,500 req/day; Twilio ~2 msg/day; Claude ~1,500/month — all well within provider limits
+  - [ ] Data-flow audit: inbound public data only; outbound Twilio API; no webhook attack surface; no third-party redistribution
+  - [ ] `PHASE-REVIEW.md` exists with: what worked, what didn't, what's in BACKLOG, commercial-signal reading (avg excess/vol of top poster over PoC window), MVP readiness, Beta go/no-go assessment
+- **Demo Artifact**: The `PHASE-REVIEW.md` file + the security-review checklist output, saved to `docs/influence-post-monitoring/poc/demos/milestone-5/TASK-018-review.txt`.
+- **Notes**: This task gates the PoC → MVP transition. Do not declare PoC complete without it.
 
 ---
 
-## Completed Tasks Log
-
-<!-- Move completed tasks here with completion date in format: Done (YYYY-MM-DD) -->
+## Completed Milestones Log
+<!-- Move completed milestones here with completion date and review outcome -->
