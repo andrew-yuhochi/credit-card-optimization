@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 5 |
+| Done | 6 |
 | In Progress | 0 |
-| To Do | 13 |
+| To Do | 12 |
 | Blocked | 0 |
 
 ---
@@ -168,7 +168,7 @@
 - **Notes**: Early-close trading days (day after Thanksgiving, Christmas Eve) are treated as 16:00 ET close at PoC — the small data error is acceptable; documented in the class docstring.
 
 ### TASK-006: Ticker extraction (3-layer + whitelist)
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-001
