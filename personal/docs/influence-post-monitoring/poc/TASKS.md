@@ -150,7 +150,7 @@
 - **Notes**: Test against 3 accounts only in initial runs (Ackman, Burry, Chanos) to minimize suspension risk during dev. Scale to 30 after Milestone 3 validation. The handle-resolution sequence is implemented even in the 3-account run so it can be unit-tested; a synthetic "renamed" fixture exercises the path without needing an actual renamed account.
 
 ### TASK-005: Trading calendar + post collection window
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Low
 - **Depends on**: TASK-001
