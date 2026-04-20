@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 19 |
+| Done | 20 |
 | In Progress | 0 |
-| To Do | 10 |
+| To Do | 9 |
 | Blocked | 0 |
 
 ---
@@ -414,7 +414,7 @@
 - **Notes**: No win-rate metric anywhere. No binary is_hit. Excess/vol is the only quality metric.
 
 ### TASK-013: Evening summary renderer + full pipeline orchestration
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-012, TASK-010b

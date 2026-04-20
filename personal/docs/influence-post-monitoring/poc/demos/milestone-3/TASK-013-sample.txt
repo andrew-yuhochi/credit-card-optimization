@@ -1,0 +1,42 @@
+=== TASK-013 Evening Summary Dry-Run ===
+Generated: 2026-04-19
+Command:   python -m influence_monitor.pipeline evening --dry-run --use-fixtures
+Fixtures:  tests/fixtures/sample_outcomes.json (10 records)
+
+--- Message 1 of 1 ---
+📊 *Evening Summary — 21 Apr 2026*
+
+━━━ ACT NOW OUTCOMES ━━━
+*$FNMA* +8.6% overnight / +6.4% tradeable / +1.88 excess-vol (SPY: +0.7% | vol: 4.2%)
+
+*$NFLX* +2.5% overnight / +2.0% tradeable / -0.99 excess-vol (SPY: +0.7% | vol: 1.8%)
+_(short went up)_
+
+*$AAPL* +3.2% overnight / +2.7% tradeable / +1.68 excess-vol (SPY: +0.7% | vol: 1.5%)
+
+*$GME* -4.7% overnight / -2.3% tradeable / -0.98 excess-vol (SPY: +0.7% | vol: 5.5%)
+
+*$TSLA* +3.9% overnight / +2.7% tradeable / +1.07 excess-vol (SPY: +0.7% | vol: 3.0%)
+
+*$TSLA* +3.9% overnight / +2.7% tradeable / -1.07 excess-vol (SPY: +0.7% | vol: 3.0%)
+_(short went up)_
+
+*$PARA* — price data unavailable
+
+━━━ WATCH LIST (monitored only) ━━━
+*$NOVA* +5.7% overnight / +4.0% tradeable / +1.32 excess-vol (SPY: +0.7% | vol: 3.8%)
+
+*$RIVN* -5.8% overnight / -3.6% tradeable / -1.44 excess-vol (SPY: +0.7% | vol: 4.5%)
+_(short = gain)_
+
+*$SMCI* +6.9% overnight / +4.8% tradeable / +1.20 excess-vol (SPY: +0.7% | vol: 5.2%)
+
+━━━ 30-DAY SCORECARD ━━━
+⚠️ Sample still building — treat as watchlist only (< 20 days)
+@BillAckman — avg excess-vol +1.88 (3 signals)
+@DanielSLoeb1 — avg excess-vol +1.68 (2 signals)
+@GavinSBaker — avg excess-vol +1.32 (2 signals)
+@CathieWood — avg excess-vol +1.07 (1 signals)
+@michaeljburry — avg excess-vol -0.99 (2 signals)
+
+
