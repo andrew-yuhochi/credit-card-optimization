@@ -443,6 +443,13 @@
 - **Demo Artifact**: Screenshot of a real evening WhatsApp summary on the user's phone — use `--use-fixtures` if no organic outcomes exist that day — saved to `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-013-evening.png`. Plus a dry-run sample text at `TASK-013-sample.txt`.
 - **Notes**: Message length budget: target <40 lines; hard cap 4,000 chars. The disclaimer footer was removed during Milestone 1 per PRD §8 override — do not add it back without user sign-off (the PRD §8 override explicitly flags re-evaluation before any non-personal-use distribution).
 
+### TASK-013b: Evening renderer format overhaul
+- **Status**: Done (2026-04-20)
+- **Agent**: data-pipeline
+- **Complexity**: Low
+- **Depends on**: TASK-013
+- **Context**: User-approved UX change following Milestone 3 deliverable review. Rewrote `evening_renderer.py` with 8 format changes: numbered signals, market return header line, renamed section headers (ACT NOW / WATCH LIST), new per-symbol block format (D2D Return / O2C Return / Excess-vol with ✅/❌/⭐), 1:1 morning→evening mapping (no dropped signals), removal of `_(short went up)_` annotation, removal of "(monitored only)" from Watch List header, and conflict block grouping for opposing-direction tickers.
+
 ---
 
 ## Milestone 4: Full 30-Account Production + Scheduling
