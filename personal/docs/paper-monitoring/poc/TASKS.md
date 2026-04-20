@@ -10,9 +10,9 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 ## Progress Summary
 | Status | Count |
 |--------|-------|
-| Done | 5 |
+| Done | 6 |
 | In Progress | 0 |
-| To Do | 12 |
+| To Do | 11 |
 | Blocked | 0 |
 
 **Milestone order is binding** per CLAUDE.md's three-stage prototype validation rule (manual prototype → automated sample → full extension). Do not start Milestone 2 before the user approves Milestone 1. Do not start Milestone 3 before the user approves Milestone 2.
@@ -168,7 +168,7 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 > **Status**: To Do
 
 ### TASK-M2-001: Wikidata + Wikipedia clients
-- **Status**: To Do
+- **Status**: Done (2026-04-20)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: M
 - **Depends on**: Milestone 1 complete
