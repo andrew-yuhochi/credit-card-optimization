@@ -10,7 +10,7 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 7 |
+| Done | 17 |
 | In Progress | 0 |
 | To Do | 12 |
 | Blocked | 0 |
@@ -331,8 +331,24 @@
   - [ ] `python -m influence_monitor.pipeline morning --use-fixtures` completes successfully on any day, with or without organic signals
   - [ ] `tests/test_pipeline.py` and `tests/test_integration.py` rewritten: skip markers from TASK-010a removed; full assertions against the new orchestrator pass
   - [ ] No test or production file references `EmailProvider`, `HolidayCalendar`, `ScorecardEngine`, `IndexMembershipResolver`, `CorroborationDetector`, or `SignalAggregator` (grep-verified)
-- **Demo Artifact**: Two artifacts: (a) CLI log of the 3-account dry-run saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010b-dryrun.txt`; (b) screenshot of the real WhatsApp morning alert — use `--use-fixtures` if no organic signals exist that day, or the live 3-account run if signals exist — saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010b-live.png`.
+- **Demo Artifact**: Three artifacts: (a) CLI log of the 3-account dry-run saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010b-dryrun.txt`; (b–d) screenshots of the real WhatsApp morning alert (3 screens) saved to `docs/influence-post-monitoring/poc/demos/milestone-2/TASK-010b-live-1.PNG`, `TASK-010b-live-2.PNG`, `TASK-010b-live-3.PNG`.
 - **Notes**: Operational failure messages go to the same recipient phone — the user is both operator and user at PoC. `pipeline.py` is the CLI entry point. Because this task replaces the stub left by TASK-010a with a real orchestrator, the test-validator pass here is the gate for Milestone 2 — a clean `pytest` run with the rewritten `test_pipeline.py` + `test_integration.py` is required before Milestone 3 begins.
+
+### TASK-010c: Conflict block renderer + restore 5-signal cap
+- **Status**: Done (2026-04-19)
+- **Agent**: data-pipeline (impl), test-validator (QA)
+- **Complexity**: Low
+- **Depends on**: TASK-010b
+- **Context**: User approved during Milestone 2 deliverable review (2026-04-19). Promoted from BL-004. Two changes: (1) Restore the `[:5]` cap on ACT_NOW display slots that was accidentally removed in a prior fix. (2) When exactly 2 ACT_NOW signals share a ticker with opposing directions (LONG vs SHORT), collapse them into a single conflict block that counts as 1 toward the 5-slot cap. Conflict block header: `📈📉 $TICKER (CapTier)`; each sub-signal shows its score bar and poster handle; post excerpts shown at the bottom in backtick formatting.
+- **Description**: In `rendering/morning_renderer.py`: add `_are_opposing()` + `_group_act_now_signals()` helpers; add `_render_conflict_block()` renderer; update `render_morning()` to group signals before sorting/capping (apply `[:5]` to grouped slots). Conflict detection uses `MorningSignal.direction` field values `LONG`/`SHORT` (and `BUY`/`SELL`). Non-conflicted signals retain existing single-block format. WATCH LIST cap unchanged. Add tests in `tests/test_pipeline.py` covering: opposing pair → one conflict block, conflict block counts as 1 slot toward 5-cap, 3+ signals or same-direction pair → not grouped.
+- **Acceptance Criteria**:
+  - [x] Two ACT_NOW signals for the same ticker with opposing directions → rendered as one conflict block
+  - [x] Conflict block counts as 1 toward the 5-slot ACT_NOW display cap
+  - [x] Three signals for same ticker (2 same direction + 1 opposing) → rendered as separate slots, not grouped
+  - [x] `[:5]` cap restored on sorted ACT_NOW slots
+  - [x] WATCH LIST cap and rendering unchanged
+  - [x] All existing tests still pass
+- **Demo Artifact**: none — renderer fix; correctness visible in `TASK-010b-dryrun.txt` (conflict block format) and 401-test clean run (2026-04-19).
 
 ---
 
@@ -586,6 +602,20 @@
 ---
 
 ## Completed Milestones Log
+
+### ✅ Milestone 2 — Ingestion + Scoring Pipeline (Act Now tier only)
+**Approved**: 2026-04-19 | **Outcome**: Approved with notes
+
+**Tasks**: TASK-003, TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, TASK-009, TASK-010a, TASK-010b, TASK-010c
+**Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-2/`
+
+**What shipped**: Full ingestion → scoring → delivery pipeline end-to-end. SQLite schema + repo layer; twikit ingestion + AccountRegistry; trading calendar; 3-layer ticker extraction; Claude Haiku directional scoring; five-factor scoring engine (F1–F5) with DB-stored weights; amplifier fetcher; legacy module cleanup; synchronous morning orchestrator with `--use-fixtures` / `--dry-run` / `--account-limit` flags; conflict block renderer with 📈📉 grouped format and 5-signal cap. 401 tests passing.
+
+**User notes**: "Current validation is most for the happy flow, should we add a new task to ensure major edge cases are covered?"
+
+**Deviations accepted**: TASK-010c (conflict renderer) added mid-milestone after deliverable review — BA-confirmed ALIGNED. WhatsApp Sandbox 24-hour session window encountered; WhatsApp Message Templates noted as MVP requirement. PRD §8 override entries for format decisions still open — architect to close before Milestone 3 gate.
+
+---
 
 ### ✅ Milestone 1 — First WhatsApp Alert End-to-End (hardcoded data)
 **Approved**: 2026-04-19 | **Outcome**: Approved
