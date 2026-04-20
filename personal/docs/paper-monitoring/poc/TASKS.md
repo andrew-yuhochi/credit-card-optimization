@@ -10,9 +10,9 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 ## Progress Summary
 | Status | Count |
 |--------|-------|
-| Done | 2 |
+| Done | 3 |
 | In Progress | 0 |
-| To Do | 15 |
+| To Do | 14 |
 | Blocked | 0 |
 
 **Milestone order is binding** per CLAUDE.md's three-stage prototype validation rule (manual prototype → automated sample → full extension). Do not start Milestone 2 before the user approves Milestone 1. Do not start Milestone 3 before the user approves Milestone 2.
@@ -82,7 +82,7 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 - **Notes**: This is the single highest-leverage artifact in the whole PoC. The AI generates, the user judges. Quality bar: the user should be able to draft a LinkedIn carousel from any single export without needing to look anything up.
 
 ### TASK-M1-003: Seeder for hand-crafted ground truth
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: S
 - **Depends on**: TASK-M1-001, TASK-M1-002
