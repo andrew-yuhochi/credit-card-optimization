@@ -463,7 +463,7 @@
 > **Status**: To Do
 
 ### TASK-014: GitHub Actions scheduling workflows + Turso deployment
-- **Status**: To Do
+- **Status**: In Progress (Pending Demo — screenshot required from user)
 - **Agent**: data-pipeline (impl), architect (phase review)
 - **Complexity**: Medium
 - **Depends on**: TASK-013
@@ -488,6 +488,17 @@
   - [ ] Twikit cookie persistence strategy documented: either (a) one-time `workflow_dispatch` auth run that writes cookies back to a secret, or (b) cookies committed as a multi-line secret. Document the chosen path in `projects/influence-post-monitoring/README.md`.
 - **Demo Artifact**: Screenshot of GitHub Actions showing 3 successful scheduled runs (one each of poll + morning + evening), saved to `docs/influence-post-monitoring/poc/demos/milestone-4/TASK-014-actions.png`.
 - **Notes**: Turso free tier covers PoC comfortably; README documents the setup (create DB, capture `libsql://` URL and token).
+
+### BUG-014a: Workflow env var mismatch — TWILIO_SANDBOX_NUMBER vs TWILIO_WHATSAPP_FROM
+- **Status**: Done (2026-04-20)
+- **Fixed by**: data-pipeline
+- **Files changed**:
+  - `.github/workflows/morning_alert.yml` — replaced `TWILIO_SANDBOX_NUMBER` with `TWILIO_WHATSAPP_FROM`
+  - `.github/workflows/evening_summary.yml` — same fix
+  - `.github/workflows/market_hours_poll.yml` — same fix
+  - `influence_monitor/pipeline.py` — removed redundant `init_schema()` + `seed()` calls from `run_poll()` (already called in `main()` before dispatch)
+  - `.github/workflows/morning_pipeline.yml` — deleted (stale, referenced dead vars `RESEND_API_KEY`, `TWITTER_USERNAME`)
+  - `.github/workflows/evening_pipeline.yml` — deleted (stale, same reason)
 
 ### TASK-015: Full 30-account live run + account validation verification
 - **Status**: To Do

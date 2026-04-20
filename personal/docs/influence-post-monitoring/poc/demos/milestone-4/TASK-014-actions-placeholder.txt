@@ -1,0 +1,15 @@
+Screenshot pending — user action required.
+
+To complete the TASK-014 Demo Artifact:
+
+1. Push the TASK-014 branch to GitHub (or merge to main).
+2. Go to the repository Actions tab on GitHub.
+3. Trigger each of the three workflows manually via "Run workflow" (workflow_dispatch):
+   - "Morning Alert"        (.github/workflows/morning_alert.yml)
+   - "Evening Summary"      (.github/workflows/evening_summary.yml)
+   - "Market Hours Poll"    (.github/workflows/market_hours_poll.yml)
+4. Confirm each run completes successfully (green checkmark).
+5. Take a screenshot of the Actions tab showing all three successful runs.
+6. Save the screenshot as TASK-014-actions.png in this directory.
+
+Once the screenshot is saved, TASK-014 can be marked Done in TASKS.md.
