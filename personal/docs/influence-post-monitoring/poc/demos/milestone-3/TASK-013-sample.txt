@@ -1,219 +1,63 @@
-For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
-For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
 📊 *Evening Summary — 20 Apr 2026*
 Today Market Return: +0.7%
 
 ━━━ ACT NOW ━━━
-1. 📈 $FNMA BUY @BillAckman - 82%
+1. 📈 $FNMA
 D2D Return: +8.6%
 O2C Return: +6.4%
+BUY @BillAckman - 82%
 Excess-vol: 1.88 (vol: 4.2%) ✅
 
-2. 📈 $FNMA BUY @BillAckman - 82%
-D2D Return: +8.6%
-O2C Return: +6.4%
-Excess-vol: 1.88 (vol: 4.2%) ✅
-
-3. 📈 $FNMA BUY @BillAckman - 82%
-D2D Return: +8.6%
-O2C Return: +6.4%
-Excess-vol: 1.88 (vol: 4.2%) ✅
-
-4. 📈 $FNMA BUY @BillAckman - 82%
-D2D Return: +8.6%
-O2C Return: +6.4%
-Excess-vol: 1.88 (vol: 4.2%) ✅
-
-5. 📈 $TSLA BUY @CathieWood - 76%
+2. 📈📉 $TSLA
 D2D Return: +3.9%
 O2C Return: +2.7%
+BUY @CathieWood - 76%
 Excess-vol: 1.07 (vol: 3.0%) ✅
-
-6. 📈 $TSLA BUY @CathieWood - 76%
-D2D Return: +3.9%
-O2C Return: +2.7%
-Excess-vol: 1.07 (vol: 3.0%) ✅
-
-7. 📈 $TSLA BUY @CathieWood - 76%
-D2D Return: +3.9%
-O2C Return: +2.7%
-Excess-vol: 1.07 (vol: 3.0%) ✅
-
-8. 📈 $TSLA BUY @CathieWood - 76%
-D2D Return: +3.9%
-O2C Return: +2.7%
-Excess-vol: 1.07 (vol: 3.0%) ✅
-
-9. 📉 $TSLA SELL @carsonblock - 68%
-D2D Return: +3.9%
-O2C Return: +2.7%
+SELL @carsonblock - 68%
 Excess-vol: -1.07 (vol: 3.0%) ❌
 
-10. 📉 $TSLA SELL @carsonblock - 68%
-D2D Return: +3.9%
-O2C Return: +2.7%
-Excess-vol: -1.07 (vol: 3.0%) ❌
-
-11. 📉 $TSLA SELL @carsonblock - 68%
-D2D Return: +3.9%
-O2C Return: +2.7%
-Excess-vol: -1.07 (vol: 3.0%) ❌
-
-12. 📉 $TSLA SELL @carsonblock - 68%
-D2D Return: +3.9%
-O2C Return: +2.7%
-Excess-vol: -1.07 (vol: 3.0%) ❌
-
-13. 📉 $NFLX SELL @michaeljburry - 71%
+3. 📉 $NFLX
 D2D Return: +2.5%
 O2C Return: +2.0%
+SELL @michaeljburry - 71%
 Excess-vol: -0.99 (vol: 1.8%) ❌
 
-14. 📉 $NFLX SELL @michaeljburry - 71%
-D2D Return: +2.5%
-O2C Return: +2.0%
-Excess-vol: -0.99 (vol: 1.8%) ❌
-
-15. 📉 $NFLX SELL @michaeljburry - 71%
-D2D Return: +2.5%
-O2C Return: +2.0%
-Excess-vol: -0.99 (vol: 1.8%) ❌
-
-16. 📉 $NFLX SELL @michaeljburry - 71%
-D2D Return: +2.5%
-O2C Return: +2.0%
-Excess-vol: -0.99 (vol: 1.8%) ❌
-
-17. 📈 $GME BUY @TruthGundlach - 68%
+4. 📈 $GME
 D2D Return: -4.7%
 O2C Return: -2.3%
+BUY @TruthGundlach - 68%
 Excess-vol: -0.98 (vol: 5.5%) ❌
 
-18. 📈 $GME BUY @TruthGundlach - 68%
-D2D Return: -4.7%
-O2C Return: -2.3%
-Excess-vol: -0.98 (vol: 5.5%) ❌
-
-19. 📈 $GME BUY @TruthGundlach - 68%
-D2D Return: -4.7%
-O2C Return: -2.3%
-Excess-vol: -0.98 (vol: 5.5%) ❌
-
-20. 📈 $GME BUY @TruthGundlach - 68%
-D2D Return: -4.7%
-O2C Return: -2.3%
-Excess-vol: -0.98 (vol: 5.5%) ❌
-
-21. 📈 $AAPL BUY @DanielSLoeb1 - 65%
+5. 📈 $AAPL
 D2D Return: +3.2%
 O2C Return: +2.7%
+BUY @DanielSLoeb1 - 65%
 Excess-vol: 1.68 (vol: 1.5%) ✅
-
-22. 📈 $AAPL BUY @DanielSLoeb1 - 65%
-D2D Return: +3.2%
-O2C Return: +2.7%
-Excess-vol: 1.68 (vol: 1.5%) ✅
-
-23. 📈 $AAPL BUY @DanielSLoeb1 - 65%
-D2D Return: +3.2%
-O2C Return: +2.7%
-Excess-vol: 1.68 (vol: 1.5%) ✅
-
-24. 📈 $AAPL BUY @DanielSLoeb1 - 65%
-D2D Return: +3.2%
-O2C Return: +2.7%
-Excess-vol: 1.68 (vol: 1.5%) ✅
-
-25. 📈 $PARA BUY @ReformedBroker - 55%
-D2D Return: —
-O2C Return: —
-Excess-vol: — (price unavailable)
-
-26. 📈 $PARA BUY @ReformedBroker - 55%
-D2D Return: —
-O2C Return: —
-Excess-vol: — (price unavailable)
-
-27. 📈 $PARA BUY @ReformedBroker - 55%
-D2D Return: —
-O2C Return: —
-Excess-vol: — (price unavailable)
-
-28. 📈 $PARA BUY @ReformedBroker - 55%
-D2D Return: —
-O2C Return: —
-Excess-vol: — (price unavailable)
 
 ━━━ WATCH LIST ━━━
-29. 📈 $NOVA BUY @GavinSBaker - 58%
+6. 📈 $NOVA
 D2D Return: +5.7%
 O2C Return: +4.0%
+BUY @GavinSBaker - 58%
 Excess-vol: 1.32 (vol: 3.8%) ✅
 
-30. 📈 $NOVA BUY @GavinSBaker - 58%
-D2D Return: +5.7%
-O2C Return: +4.0%
-Excess-vol: 1.32 (vol: 3.8%) ✅
-
-31. 📈 $NOVA BUY @GavinSBaker - 58%
-D2D Return: +5.7%
-O2C Return: +4.0%
-Excess-vol: 1.32 (vol: 3.8%) ✅
-
-32. 📈 $NOVA BUY @GavinSBaker - 58%
-D2D Return: +5.7%
-O2C Return: +4.0%
-Excess-vol: 1.32 (vol: 3.8%) ✅
-
-33. 📉 $RIVN SELL @WallStCynic - 55%
+7. 📉 $RIVN
 D2D Return: -5.8%
 O2C Return: -3.6%
+SELL @WallStCynic - 55%
 Excess-vol: -1.44 (vol: 4.5%) ❌
 _(short = gain)_
 
-34. 📉 $RIVN SELL @WallStCynic - 55%
-D2D Return: -5.8%
-O2C Return: -3.6%
-Excess-vol: -1.44 (vol: 4.5%) ❌
-_(short = gain)_
-
-35. 📉 $RIVN SELL @WallStCynic - 55%
-D2D Return: -5.8%
-O2C Return: -3.6%
-Excess-vol: -1.44 (vol: 4.5%) ❌
-_(short = gain)_
-
-36. 📉 $RIVN SELL @WallStCynic - 55%
-D2D Return: -5.8%
-O2C Return: -3.6%
-Excess-vol: -1.44 (vol: 4.5%) ❌
-_(short = gain)_
-
-37. 📈 $SMCI BUY @chamath - 50%
+8. 📈 $SMCI
 D2D Return: +6.9%
 O2C Return: +4.8%
-Excess-vol: 1.20 (vol: 5.2%) ✅
-
-38. 📈 $SMCI BUY @chamath - 50%
-D2D Return: +6.9%
-O2C Return: +4.8%
-Excess-vol: 1.20 (vol: 5.2%) ✅
-
-39. 📈 $SMCI BUY @chamath - 50%
-D2D Return: +6.9%
-O2C Return: +4.8%
-Excess-vol: 1.20 (vol: 5.2%) ✅
-
-40. 📈 $SMCI BUY @chamath - 50%
-D2D Return: +6.9%
-O2C Return: +4.8%
+BUY @chamath - 50%
 Excess-vol: 1.20 (vol: 5.2%) ✅
 
 ━━━ 30-DAY SCORECARD ━━━
 ⚠️ Sample still building — treat as watchlist only (< 20 days)
-@BillAckman — avg excess-vol +1.88 (4 signals)
-@DanielSLoeb1 — avg excess-vol +1.68 (4 signals)
-@GavinSBaker — avg excess-vol +1.32 (4 signals)
-@chamath — avg excess-vol +1.20 (4 signals)
-@CathieWood — avg excess-vol +1.07 (4 signals)
-
+@BillAckman — avg excess-vol +1.88 (1 signal)
+@DanielSLoeb1 — avg excess-vol +1.68 (1 signal)
+@GavinSBaker — avg excess-vol +1.32 (1 signal)
+@chamath — avg excess-vol +1.20 (1 signal)
+@CathieWood — avg excess-vol +1.07 (1 signal)

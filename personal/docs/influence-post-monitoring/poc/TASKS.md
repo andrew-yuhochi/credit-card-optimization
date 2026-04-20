@@ -10,7 +10,7 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 20 |
+| Done | 24 |
 | In Progress | 0 |
 | To Do | 9 |
 | Blocked | 0 |
@@ -448,6 +448,7 @@
 - **Agent**: data-pipeline
 - **Complexity**: Low
 - **Depends on**: TASK-013
+- **Demo Artifact**: none — renderer fix; correctness visible in `docs/influence-post-monitoring/poc/demos/milestone-3/TASK-013-sample.txt` (updated dry-run) and 443-test clean run (2026-04-20).
 - **Context**: User-approved UX change following Milestone 3 deliverable review. Rewrote `evening_renderer.py` with 8 format changes: numbered signals, market return header line, renamed section headers (ACT NOW / WATCH LIST), new per-symbol block format (D2D Return / O2C Return / Excess-vol with ✅/❌/⭐), 1:1 morning→evening mapping (no dropped signals), removal of `_(short went up)_` annotation, removal of "(monitored only)" from Watch List header, and conflict block grouping for opposing-direction tickers.
 
 ---
@@ -613,6 +614,18 @@
 ---
 
 ## Completed Milestones Log
+
+### ✅ Milestone 3 — Evening Outcome + Excess/Vol Score + Scorecard
+**Approved**: 2026-04-20 | **Outcome**: Approved
+
+**Tasks**: TASK-011, TASK-012, TASK-013, TASK-013b
+**Demo Gallery**: `docs/influence-post-monitoring/poc/demos/milestone-3/`
+
+**What shipped**: Market data client (yfinance + Alpha Vantage fallback, fetch_stock_vol, fetch_spy_return); outcome engine (overnight/tradeable/excess-vol persisted to signals); scorecard aggregator (top 5 posters by avg excess-vol, trading_days_with_signals); evening orchestrator (run_evening, --use-fixtures, --dry-run, daily_summaries upsert); evening renderer with numbered signals, D2D/O2C labels, decimal score (0–1), ✅/❌/⭐ excess-vol indicators, conflict block grouping, 5-slot cap. 443 tests passing.
+
+**Deviations accepted**: TASK-013b (renderer format overhaul) added mid-milestone after deliverable review — BA-confirmed ALIGNED. Signal score display changed from % to decimal (0–1) across both morning and evening renderers. Architect carry-over: PRD §8 Override entries still open — must close before Milestone 5 gate.
+
+---
 
 ### ✅ Milestone 2 — Ingestion + Scoring Pipeline (Act Now tier only)
 **Approved**: 2026-04-19 | **Outcome**: Approved with notes

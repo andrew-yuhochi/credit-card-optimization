@@ -84,3 +84,51 @@
 **Recommendation**: ALIGNED — proceed to Milestone 3. No proposal should be rejected or revised. One housekeeping action remains outstanding from the Milestone 1 DRIFTING verdict: the architect should add §8 override entries for the four Milestone 1 format decisions before the Milestone 3 gate so the PRD single source of truth is complete.
 
 **User outcome**: [Leave blank — to be filled when user decides]
+
+---
+
+## 2026-04-19 — Edge case test coverage expansion for TASK-016 (Milestone 5)
+
+**Verdict**: PARTIAL (subset ALIGNED, subset DRIFTING)
+**Mode**: B
+**Anchors**:
+- PRD §4 Success Criteria C1–C9: PoC success is framed around the engine working end-to-end — signals flow, scores persist, messages ship, raw data is intact.
+- TASKS.md Milestone 5 goal: "Integration tests, security review, and README complete. Known-good state ready for 4-week personal-use PoC validation."
+- TASKS.md TASK-016 acceptance criteria: `pytest` passes ≥80% coverage; all external deps mocked; 10 fixtures covering named scenarios; no live-credential requirements.
+- PRD §7 Scope OUT: "Weight auto-recalibration / feedback-loop retraining: MVP scope."
+- PRD §11 Risks and Mitigations: twikit suspension, Twilio silent-fail, yfinance staleness, Burry-pattern deletion, and Claude Haiku misclassification are explicitly named as PoC-level risks with stated mitigations.
+
+**Analysis**: The PoC question is "does the engine work?" — test coverage that proves the engine survives the exact failure modes named in §11 is directly aligned. Edge cases that protect the correctness of scoring logic, signal persistence, and message delivery (the three things §11 explicitly worried about) belong in PoC. Edge cases that test graceful degradation under sustained production load — rate-limit retry loops, partial batch recovery, character-limit truncation — are reliability/hardening concerns that the three-phase framework explicitly reserves for MVP. The prior log shows no repeated drift toward hardening; this is a first-time question.
+
+**PoC shortlist (wire into TASK-016)**:
+- Claude returns malformed JSON → zero-score sentinel (PRD §6.2 item 9; §11 Claude Haiku misclassification risk)
+- Ticker that's a common word (e.g. "IT") → filtered by whitelist (PRD §6.2 items 7–8; §11 false-positive risk)
+- Score exactly on tier boundary (final_score = 0.70) → correct tier assigned (PRD §6.2 items 10–11)
+- Post with 10+ ticker mentions → top-N selection without crash (PRD §6.2 item 7)
+
+**Deferred to MVP BACKLOG**: account suspended mid-run (retry/swap is MVP resilience); twikit 429 retry (back-off policy is hardening); Claude API timeout (timeout policy is hardening; zero-score sentinel handles the output side); DB write fails mid-pipeline (partial-batch recovery is operational resilience); partial signal batch (same); Twilio 429 (§11 rates this Low at PoC — 2 msgs/day); message over 4,000 char (delivery UX hardening; no PRD length contract at PoC).
+
+**Recommendation**: PARTIAL — add the four PoC edge cases to TASK-016's existing fixture list (expands from 10 to ~14 fixtures; appropriate for ≥80% coverage). No separate task needed. Log the seven deferred cases to BACKLOG.md for MVP before TASK-016 begins.
+
+**User outcome**: [Leave blank — to be filled when user decides]
+
+---
+
+## 2026-04-19 — Milestone 3 deliverable review: TASK-011 through TASK-013b (market data client, outcome engine, evening renderer + orchestration, renderer format overhaul)
+
+**Verdict**: ALIGNED
+**Mode**: B
+**Anchors**:
+- PRD §3 Commercial Thesis (Agreed): "The track record database must be built from PoC day one."
+- PRD §4 Success Criteria C2: "A WhatsApp message arrives between 4:30–5:30 PM ET on every US trading day, containing outcome metrics (overnight return, tradeable return, excess/vol score) for flagged stocks and a 30-day per-poster scorecard ranked by average excess/vol score."
+- PRD §4 Success Criteria C5: "Every scored signal is persisted with all raw inputs … AND outcome metrics … This is the regression dataset for MVP weight calibration and the track record database for commercial use."
+- PRD §4 Success Criteria C7: "For every flagged signal, the system computes `(stock_return − SPY_return) / stock_20d_vol` and stores it alongside the raw returns."
+- PRD §6.3 Outcome computation items 13–15: `overnight_return`, `tradeable_return`, `excess_vol_score`; SPY return and 20d vol stored for transparency; 30-day scorecard per poster ranked by avg excess/vol.
+- PRD §6.4 Delivery item 17: "Per-stock outcome block shows three metrics: overnight return, tradeable return, excess/vol score — with `(SPY: +X% | vol: X%)` shown in parentheses for transparency."
+- PRD §7 Scope OUT: "Web dashboard / UI: PoC is WhatsApp-only."
+
+**Analysis**: All four Milestone 3 tasks map directly to named §6 Scope IN requirements. TASK-011 delivers `fetch_stock_vol` and `fetch_spy_return` with yfinance + Alpha Vantage fallback (§6.3 items 13–14, PRD Assumption 4, C7). TASK-012 delivers `OutcomeEngine` and `ScorecardAggregator` — the exact outcome schema (overnight_return, tradeable_return, spy_return, stock_20d_vol, excess_vol_score) demanded by C5, C7, and §6.3 items 13–15; the track-record database (§3 moat) begins accumulating data here. TASK-013 delivers the evening renderer and `run_evening` orchestration with always-send and `--use-fixtures`, closing C2 and C3. TASK-013b's format overhaul (numbered signals, D2D/O2C labels, decimal score, conflict grouping, 5-slot cap) is a renderer-level UX refinement that is user-approved and stays within the WhatsApp-only PoC boundary; it tightens, not expands, the evening output. No §7 Scope OUT items are touched. The Milestone 1 documentation gap (four §8 override entries outstanding) remains open from prior log entries — this milestone does not worsen it, but it should be closed before the Milestone 4 gate.
+
+**Recommendation**: ALIGNED — proceed. Milestone 3 fully delivers C2, C5, C7, and the track record data foundation required by §3. One housekeeping action carries forward: the architect should add §8 override entries for the four Milestone 1 format deviations (conviction emoji, CORROBORATED tag removal, 20-word truncation, disclaimer removal) before Milestone 4 begins.
+
+**User outcome**: [Leave blank — to be filled when user decides]
