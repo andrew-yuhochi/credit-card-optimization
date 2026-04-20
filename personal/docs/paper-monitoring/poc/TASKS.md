@@ -10,9 +10,9 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 ## Progress Summary
 | Status | Count |
 |--------|-------|
-| Done | 6 |
+| Done | 7 |
 | In Progress | 0 |
-| To Do | 11 |
+| To Do | 10 |
 | Blocked | 0 |
 
 **Milestone order is binding** per CLAUDE.md's three-stage prototype validation rule (manual prototype → automated sample → full extension). Do not start Milestone 2 before the user approves Milestone 1. Do not start Milestone 3 before the user approves Milestone 2.
@@ -215,7 +215,7 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 - **Demo Artifact**: Save the prompt + LLM response for XGBoost extraction (live run, qwen2.5:14b) to `docs/paper-monitoring/poc/demos/milestone-2/TASK-M2-002-xgboost-extraction.txt`. Include the generated 8-field record.
 
 ### TASK-M2-003: Seed pipeline on tree-based models + diff against ground truth
-- **Status**: To Do
+- **Status**: Done (2026-04-20)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: M
 - **Depends on**: TASK-M2-001, TASK-M2-002
