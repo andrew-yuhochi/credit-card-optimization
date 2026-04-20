@@ -536,6 +536,10 @@
   - [ ] Conflict-resolution test: direction flip scenario → `⚠️ Direction changed` tag rendered
   - [ ] Multi-poster test: 3 posters mixed → both direction blocks rendered with `⚠️ Conflicted`
   - [ ] Price-unavailable test: outcome row renders `— price data unavailable`
+  - [ ] **Edge case — malformed LLM response**: Claude mock returns malformed JSON → pipeline assigns zero-score sentinel (score=0.0, direction=NEUTRAL), signal is not classified as ACT_NOW or WATCH, no exception raised
+  - [ ] **Edge case — common-word ticker**: Post containing "IT" (common word) → `TickerExtractor` whitelist filter suppresses it; no IT signal emitted
+  - [ ] **Edge case — tier boundary score**: Signal with `final_score` exactly at the ACT_NOW/WATCH boundary → assigned to the correct tier (assert boundary value maps to the lower tier per classifier spec)
+  - [ ] **Edge case — post with 10+ ticker mentions**: Extraction runs without crash; all valid tickers extracted up to the extractor's internal cap
   - [ ] `pytest --cov=influence_monitor tests/` passes with ≥80% coverage on `extraction/`, `scoring/`, `outcome/`, `rendering/`
   - [ ] `pytest tests/` runs with no live-credential requirements (all external deps mocked)
   - [ ] No test file imports from `influence_monitor.email`, `influence_monitor.calendar`, `influence_monitor.scorecard`, or `IndexMembershipResolver` (grep-verified)
