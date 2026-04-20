@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 17 |
+| Done | 18 |
 | In Progress | 0 |
-| To Do | 12 |
+| To Do | 11 |
 | Blocked | 0 |
 
 ---
@@ -362,7 +362,7 @@
 > **Status**: To Do
 
 ### TASK-011: Market data client (yfinance + Alpha Vantage fallback) + SPY + configurable stock vol
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-005

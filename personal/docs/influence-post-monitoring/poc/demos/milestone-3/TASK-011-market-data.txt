@@ -1,0 +1,57 @@
+TASK-011 Market Data Demo — YFinanceClient: fetch_ohlcv + fetch_spy_return + fetch_stock_vol
+============================================================
+Target trading date: 2026-04-17 (Thursday — most recent completed session)
+Run date: 2026-04-19
+
+NOTE: yfinance is IP-rate-limited (429 Too Many Requests) during this session
+due to multiple test-suite runs against the live API earlier in the session.
+The demo shows the graceful error-handling path: fetch_spy_return and
+fetch_stock_vol return None and log a WARNING (no exception propagated),
+exactly as specified in the acceptance criteria.
+============================================================
+
+[1] fetch_ohlcv("AAPL", target_date=2026-04-17)
+  ERROR: Too Many Requests. Rate limited. Try after a while.
+  (DataUnavailableError propagates to caller; rate-limit treated same as unavailable)
+
+[2] fetch_spy_return(target_date=2026-04-17)
+  WARNING fetch_spy_return: yfinance failed for SPY: Too Many Requests. Rate limited. Try after a while.
+  SPY return: None  (graceful None + WARNING log — no exception propagated)
+
+[3] fetch_stock_vol(ticker, target_date=2026-04-17, lookback_days=20)
+  WARNING fetch_stock_vol: yfinance download failed for AAPL target=2026-04-17: Too Many Requests.
+  AAPL : None  (graceful None + WARNING log)
+  WARNING fetch_stock_vol: yfinance download failed for MSFT target=2026-04-17: Too Many Requests.
+  MSFT : None  (graceful None + WARNING log)
+  WARNING fetch_stock_vol: yfinance download failed for NVDA target=2026-04-17: Too Many Requests.
+  NVDA : None  (graceful None + WARNING log)
+
+============================================================
+Unit-test validation (mocked yfinance, covers all acceptance criteria):
+
+  venv/bin/python -m pytest tests/test_market_data.py --tb=short -q
+  ...................................                                      [100%]
+  35 passed in 1.68s
+
+  Full suite:
+  venv/bin/python -m pytest tests/ --tb=short -q
+  417 passed, 2 skipped in 14.20s
+
+Test coverage of new methods:
+  YFinanceClient.fetch_stock_vol — lookback_days=20 (stdev > 0, in range);
+    lookback_days=10 vs 15 both succeed and are positive;
+    None on empty response; None on single-row (< 2 observations)
+  YFinanceClient.fetch_spy_return — positive return (+1%); negative return (−2%);
+    None on empty response; weekend-crossing (Mon→Fri prev);
+    Good-Friday-crossing (Apr 6 → Apr 2, skipping Apr 3 NYSE holiday)
+  AlphaVantageClient.fetch_stock_vol — stdev from TIME_SERIES_DAILY; None on empty series
+  AlphaVantageClient.fetch_spy_return — return from change-percent field;
+    None on stale data; None on empty quote
+
+Method signatures (ABC contract, market_data/base.py):
+  fetch_stock_vol(ticker: str, target_date: date, lookback_days: int) -> float | None
+    lookback_days is required — no default value in the client signature
+  fetch_spy_return(target_date: date) -> float | None
+
+============================================================
+Demo complete.
