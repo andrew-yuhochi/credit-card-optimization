@@ -10,9 +10,9 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 ## Progress Summary
 | Status | Count |
 |--------|-------|
-| Done | 3 |
+| Done | 4 |
 | In Progress | 0 |
-| To Do | 14 |
+| To Do | 13 |
 | Blocked | 0 |
 
 **Milestone order is binding** per CLAUDE.md's three-stage prototype validation rule (manual prototype → automated sample → full extension). Do not start Milestone 2 before the user approves Milestone 1. Do not start Milestone 3 before the user approves Milestone 2.
@@ -104,7 +104,7 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 - **Demo Artifact**: Screenshot of `python -m src.seed --ground-truth seeds/tree_based_ground_truth/` completing successfully and a follow-up `sqlite3` query showing concept count ≥ 15. Save to `docs/paper-monitoring/poc/demos/milestone-1/TASK-M1-003.png`.
 
 ### TASK-M1-004: Concept Explorer CLI + Markdown exporter (the engine)
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: M
 - **Depends on**: TASK-M1-001, TASK-M1-003

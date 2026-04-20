@@ -1,0 +1,13 @@
+
+Signal Report — last 30 days (user: default)
+────────────────────────────────────────────────
+Concept queries       : 6
+Content publications  : 1
+Usage-to-publish ratio: 16.7%  (target ≥ 30% at MVP exit)
+
+Top queried concepts:
+  · XGBoost (6x)
+
+Published concepts:
+  · XGBoost on linkedin (1x)
+
