@@ -463,7 +463,7 @@
 > **Status**: To Do
 
 ### TASK-014: GitHub Actions scheduling workflows + Turso deployment
-- **Status**: In Progress (Pending Demo — screenshot required from user)
+- **Status**: Done (2026-04-20)
 - **Agent**: data-pipeline (impl), architect (phase review)
 - **Complexity**: Medium
 - **Depends on**: TASK-013
