@@ -2,7 +2,7 @@
 
 > **Purpose**: Track requirements discovered during implementation that were NOT in the original PRD.
 > **Rule**: Items here are **not approved for implementation** until explicitly promoted to TASKS.md by the user.
-> **Last Updated**: 2026-04-16
+> **Last Updated**: 2026-04-19
 
 ## Backlog Items
 
@@ -19,6 +19,10 @@
 | BL-009 | Concept taxonomy: hierarchical grouping / tagging of concepts | User request, concepts are flat with no navigable structure | 2026-04-16 | High | Backlogged |
 | BL-010 | "What changed in my graph" digest + trending concepts + content opportunities | User request, monetization angle | 2026-04-16 | High | Backlogged |
 | BL-011 | User interaction layer: read status, inline notes, last accessed, flagged | Design discussion, PKM research | 2026-04-16 | High | Backlogged |
+| BL-012 | Edge-type distinction in Obsidian graph view (relationship-type icons/section headers) | Milestone 1 user validation | 2026-04-19 | Medium | Backlogged |
+| BL-013 | Concept type distinction in Obsidian graph view (color-by-tag via frontmatter tags field) | Milestone 1 user validation | 2026-04-19 | Medium | Backlogged |
+| BL-014 | Wikidata SPARQL label-matching fix: seed labels like "Gradient Boosting" return 0 results; Wikidata stores these as `Q-entity` labels not matching exactly — add QID-based lookup as primary path | TASK-M2-003 run observation | 2026-04-20 | Medium | Backlogged |
+| BL-015 | Wikipedia title override table for concepts with non-standard names (e.g. "Information Gain / ID3 / C4.5", "Oblivious Trees") — current fallback to concept-name-only text degrades extraction quality | TASK-M2-003 run observation | 2026-04-20 | Medium | Backlogged |
 
 ## Item Detail
 
@@ -199,6 +203,26 @@
 - **PRD Impact**: Major — rewrites classification schema, prompt templates, Pydantic models, GraphStore schema, and dashboard rendering. Subsumes BL-004 (problem/solution/result) and BL-006 (prerequisite vs. alternative relationships)
 - **Effort Estimate**: High (prompt redesign, schema migration, re-classification of existing papers, UI updates)
 - **Decision**: Backlogged — MVP phase. This is the foundational redesign that BL-001 (graph visualization), BL-002 (textbook seeding), and BL-005 (NotebookLM gateway) all build on top of
+
+---
+
+### BL-012: Edge-type Distinction in Obsidian Graph View
+- **Source**: Milestone 1 user validation (2026-04-19)
+- **Description**: Obsidian's graph view renders all edges identically regardless of relationship type (BUILDS_ON, ALTERNATIVE_TO, PREREQUISITE_OF look the same). Users cannot visually distinguish relationship semantics in graph view. Neo4j handles this correctly via edge labels. A workaround for Obsidian would be to prefix wikilinks in the note body with relationship-type icons or section headers (e.g., "⬆ Built on: [[...]]", "↔ Alternatives: [[...]]") so the note body communicates type even if the graph cannot.
+- **Priority**: Medium (Neo4j already solves this; Obsidian workaround is nice-to-have)
+- **Phase**: MVP
+- **PRD Impact**: Updates Obsidian exporter to prefix wikilinks by relationship type; no schema change needed
+- **Effort Estimate**: Low (exporter change only)
+- **Decision**: Backlogged — MVP phase. Neo4j users already have full edge-type visibility; this improves Obsidian-only users' experience.
+
+### BL-013: Concept Type Distinction in Obsidian Graph View
+- **Source**: Milestone 1 user validation (2026-04-19)
+- **Description**: Users cannot distinguish Mechanism/Technique/Algorithm/Framework nodes by color in Obsidian graph view. Obsidian supports color-by-tag (not by frontmatter property). Fix: add `tags: [Algorithm]` (or the concept_type value) to each note's YAML frontmatter in the Obsidian exporter. Users can then assign colors per tag in Obsidian Settings → Graph → Groups.
+- **Priority**: Medium
+- **Phase**: Milestone 2 (cheap to add to the exporter before the full seed run)
+- **PRD Impact**: Updates Obsidian exporter to emit `tags` in YAML frontmatter derived from the node's concept_type; no schema change needed
+- **Effort Estimate**: Low (one-line change per node type in the exporter)
+- **Decision**: Backlogged — Milestone 2. Cheapest to add before the full seed run so all exported notes carry the tag from the start.
 
 ---
 
