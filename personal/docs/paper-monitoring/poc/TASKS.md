@@ -10,9 +10,9 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 ## Progress Summary
 | Status | Count |
 |--------|-------|
-| Done | 4 |
+| Done | 5 |
 | In Progress | 0 |
-| To Do | 13 |
+| To Do | 12 |
 | Blocked | 0 |
 
 **Milestone order is binding** per CLAUDE.md's three-stage prototype validation rule (manual prototype → automated sample → full extension). Do not start Milestone 2 before the user approves Milestone 1. Do not start Milestone 3 before the user approves Milestone 2.
@@ -524,4 +524,13 @@ Milestone 4 (Weekly Monitor + Cutover)         |
 
 ## Completed Milestones Log
 
-*Empty — this TASKS.md is for the PoC restart (2026-04-19). The prior 28-task PoC completion is archived in the git history of the pre-restart TASKS.md file.*
+### Milestone 1 — Approved 2026-04-20
+
+**Milestone**: Schema Redesign + Stage 1 Manual Prototype (tree-based models)
+**Approved by**: User (no revision notes)
+**BA verdict**: ALIGNED
+
+**Tasks**: TASK-M1-001, TASK-M1-002, TASK-M1-003, TASK-M1-004, TASK-M1-005 — all Done (2026-04-19)
+**Demo Gallery**: `docs/paper-monitoring/poc/demos/milestone-1/`
+
+**Outcome**: User validated the concept graph in Obsidian (wikilink navigation) and Neo4j Browser (BUILDS_ON lineage with labeled edges). Schema confirmed as the foundation for Milestone 2 automated extraction. Two bugs fixed during validation (wikilink slug mismatch, missing Limitations section). BL-012 and BL-013 logged to BACKLOG.md.
