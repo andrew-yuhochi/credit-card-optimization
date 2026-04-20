@@ -191,7 +191,7 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 - **Demo Artifact**: Terminal recording of a live WikidataClient SPARQL call against "Gradient Boosting" and the returned JSON. Save to `docs/paper-monitoring/poc/demos/milestone-2/TASK-M2-001.txt`.
 
 ### TASK-M2-002: ConceptExtractor (qwen2.5:14b + few-shot XGBoost)
-- **Status**: To Do
+- **Status**: Done (2026-04-20)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: L
 - **Depends on**: Milestone 1 complete, TASK-M2-001
