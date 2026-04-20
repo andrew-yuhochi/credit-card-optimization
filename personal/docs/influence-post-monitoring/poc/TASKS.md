@@ -303,7 +303,7 @@
 - **Notes**: This is a surgical deletion task — no new behavior. It exists as its own task so that TASK-010b begins against a clean codebase and so the deletion diff is reviewable independently of the new-orchestrator diff (which is large). If test-validator surfaces incidental test breakage caused by removed symbols being imported from unexpected places, fix those imports in this task; do not defer to TASK-010b.
 
 ### TASK-010b: Morning pipeline orchestrator (new, end-to-end 3-account demo)
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: High
 - **Depends on**: TASK-002, TASK-004, TASK-005, TASK-006, TASK-007, TASK-008, TASK-009, TASK-010a

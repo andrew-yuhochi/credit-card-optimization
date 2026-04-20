@@ -1,0 +1,128 @@
+=== TASK-010b: Morning Pipeline Orchestrator — Demo ===
+Date: 2026-04-19 (Saturday)
+Run date context: 2026-04-19 is a weekend (non-trading day)
+
+================================================================
+Demo 1: 3-Account Dry-Run (non-trading day short-circuit)
+Command: python -m influence_monitor.pipeline morning --dry-run --account-limit 3
+================================================================
+2026-04-19 17:11:26 INFO influence_monitor.db.repository: Using local SQLite at data/signals.db
+2026-04-19 17:11:26 INFO influence_monitor.db.repository: Schema initialised
+2026-04-19 17:11:26 INFO influence_monitor.db.repository: Seeded 45 accounts
+2026-04-19 17:11:26 INFO influence_monitor.db.repository: Seeded 19 scoring_config rows
+2026-04-19 17:11:26 INFO influence_monitor.db.repository: Seeding complete
+2026-04-19 17:11:26 INFO influence_monitor.extraction.equity_whitelist: Reading S&P 500 symbols from legacy path /Users/andrew.yu/personal/projects/influence-post-monitoring/data/sp500_constituents.csv
+2026-04-19 17:11:26 INFO influence_monitor.extraction.equity_whitelist: Downloading Russell 3000 symbol list from GitHub
+2026-04-19 17:11:26 INFO httpx: HTTP Request: GET https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nyse/nyse_full_tickers.csv "HTTP/1.1 404 Not Found"
+2026-04-19 17:11:26 WARNING influence_monitor.extraction.equity_whitelist: Failed to download NYSE symbol list: Client error '404 Not Found' for url 'https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nyse/nyse_full_tickers.csv'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+2026-04-19 17:11:26 INFO httpx: HTTP Request: GET https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_full_tickers.csv "HTTP/1.1 404 Not Found"
+2026-04-19 17:11:26 WARNING influence_monitor.extraction.equity_whitelist: Failed to download NASDAQ symbol list: Client error '404 Not Found' for url 'https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_full_tickers.csv'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+2026-04-19 17:11:26 INFO influence_monitor.extraction.equity_whitelist: Reading supplement from /Users/andrew.yu/personal/projects/influence-post-monitoring/data/supplement.txt
+2026-04-19 17:11:26 INFO influence_monitor.extraction.equity_whitelist: Symbol whitelist loaded: 514 tickers
+2026-04-19 17:11:26 INFO influence_monitor.extraction.ticker_extractor: Loaded 182 false-positive filter words
+2026-04-19 17:11:27 INFO influence_monitor.extraction.ticker_extractor: TickerExtractor initialised (whitelist=514, false_positives=182)
+2026-04-19 17:11:27 INFO influence_monitor.scoring.claude_client: ClaudeHaikuClient initialised (model=claude-haiku-4-5-20251001)
+2026-04-19 17:11:27 INFO influence_monitor.scoring.scoring_engine: ScoringEngine init: w_cred=0.25 w_vir=0.35 w_cons=0.25 flip_penalty=0.00
+2026-04-19 17:11:27 INFO influence_monitor.scoring.amplifier: AmplifierFetcher init: high_tier>=100000 followers, mid_tier>=10000 followers
+2026-04-19 17:11:27 INFO __main__: run_morning START — date=2026-04-19 dry_run=True use_fixtures=False account_limit=3
+2026-04-19 17:11:27 INFO __main__: STEP 1 START — AccountRegistry.validate_and_promote
+2026-04-19 17:11:27 INFO __main__: STEP 1 DONE — 3 active accounts (limit=3)
+2026-04-19 17:11:27 INFO __main__: STEP 2 START — TradingCalendar.is_trading_day + collection_window
+2026-04-19 17:11:27 INFO __main__: STEP 2 DONE — 2026-04-19 is not a trading day — short-circuiting
+
+================================================================
+Demo 2: Fixtures Mode (works on any day — bypasses twikit/Claude)
+Command: python -m influence_monitor.pipeline morning --use-fixtures --dry-run
+================================================================
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Using local SQLite at data/signals.db
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Schema initialised
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Seeded 45 accounts
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Seeded 19 scoring_config rows
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Seeding complete
+2026-04-19 17:11:29 INFO influence_monitor.extraction.equity_whitelist: Reading S&P 500 symbols from legacy path /Users/andrew.yu/personal/projects/influence-post-monitoring/data/sp500_constituents.csv
+2026-04-19 17:11:29 INFO influence_monitor.extraction.equity_whitelist: Downloading Russell 3000 symbol list from GitHub
+2026-04-19 17:11:29 INFO httpx: HTTP Request: GET https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nyse/nyse_full_tickers.csv "HTTP/1.1 404 Not Found"
+2026-04-19 17:11:29 WARNING influence_monitor.extraction.equity_whitelist: Failed to download NYSE symbol list: Client error '404 Not Found' for url 'https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nyse/nyse_full_tickers.csv'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+2026-04-19 17:11:29 INFO httpx: HTTP Request: GET https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_full_tickers.csv "HTTP/1.1 404 Not Found"
+2026-04-19 17:11:29 WARNING influence_monitor.extraction.equity_whitelist: Failed to download NASDAQ symbol list: Client error '404 Not Found' for url 'https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/nasdaq/nasdaq_full_tickers.csv'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+2026-04-19 17:11:29 INFO influence_monitor.extraction.equity_whitelist: Reading supplement from /Users/andrew.yu/personal/projects/influence-post-monitoring/data/supplement.txt
+2026-04-19 17:11:29 INFO influence_monitor.extraction.equity_whitelist: Symbol whitelist loaded: 514 tickers
+2026-04-19 17:11:29 INFO influence_monitor.extraction.ticker_extractor: Loaded 182 false-positive filter words
+2026-04-19 17:11:29 INFO influence_monitor.extraction.ticker_extractor: TickerExtractor initialised (whitelist=514, false_positives=182)
+2026-04-19 17:11:29 INFO influence_monitor.scoring.claude_client: ClaudeHaikuClient initialised (model=claude-haiku-4-5-20251001)
+2026-04-19 17:11:29 INFO influence_monitor.scoring.scoring_engine: ScoringEngine init: w_cred=0.25 w_vir=0.35 w_cons=0.25 flip_penalty=0.00
+2026-04-19 17:11:29 INFO influence_monitor.scoring.amplifier: AmplifierFetcher init: high_tier>=100000 followers, mid_tier>=10000 followers
+2026-04-19 17:11:29 INFO __main__: run_morning START — date=2026-04-19 dry_run=True use_fixtures=True account_limit=None
+2026-04-19 17:11:29 INFO __main__: STEP [fixtures] START — loading sample_signals.json
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Schema initialised
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Seeded 45 accounts
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Seeded 19 scoring_config rows
+2026-04-19 17:11:29 INFO influence_monitor.db.repository: Seeding complete
+2026-04-19 17:11:29 INFO __main__: STEP [fixtures] DONE — inserted 11 signals
+2026-04-19 17:11:29 INFO __main__: STEP [fixtures] Rendering: 7 ACT_NOW, 3 WATCH signals
+2026-04-19 17:11:29 INFO __main__: STEP [fixtures] Pipeline complete — fixtures mode
+📅 *Morning Alert — 19 Apr 2026*
+
+━━━ ACT NOW ━━━
+*5* signals need immediate action
+
+*📈 Buy $FNMA (Mid)*
+Score: ✅✅✅✅ - 82%
+@BillAckman - Activist
+> "FNMA trading at steep discount; conservatorship release catalyst"
+
+*📈 Buy $TSLA (Mega)*
+Score: ✅✅✅✅ - 76%
+@CathieWood - Activist
+⚔️ Conflicted — opposing view exists
+> "TSLA robotaxi launch catalyst will re-rate the stock"
+
+*📉 Sell $NFLX (Mega)*
+Score: ✅✅✅✅ - 71%
+@michaeljburry - Activist
+> "NFLX guidance miss imminent; subscriber growth decelerating"
+
+*📈 Buy $GME (Large)*
+Score: ✅✅✅ - 68%
+@TruthGundlach - Activist
+🔄 Direction changed
+> "GameStop balance sheet now compelling after cash raise"
+
+*📉 Sell $TSLA (Mega)*
+Score: ✅✅✅ - 68%
+@carsonblock - Activist
+⚔️ Conflicted — opposing view exists
+> "TSLA fundamentals deteriorating; margin compression ongoing"
+
+━━━ WATCH LIST ━━━
+*3* signals need close attention
+
+*📈 Buy $SMCI (Mid)*
+Score: ✅✅✅ - 50%
+@chamath - Activist
+> "SMCI order backlog accelerating with AI capex wave"
+_3,500 posts/hr — Posted 23:45_
+
+*📈 Buy $NOVA (Small)*
+Score: ✅✅✅ - 58%
+@GavinSBaker - Activist
+> "NOVA residential solar economics improving with rate cuts"
+_1,400 posts/hr — Posted 23:00_
+
+*📉 Sell $RIVN (Small)*
+Score: ✅✅✅ - 55%
+@WallStCynic - Activist
+> "RIVN cash burn unsustainable at current production rate"
+_1,200 posts/hr — Posted 22:00_
+
+
+================================================================
+All 29 tests pass:
+  python -m pytest tests/test_pipeline.py tests/test_integration.py -v
+================================================================
+.............................                                            [100%]
+29 passed in 12.14s
