@@ -10,9 +10,9 @@
 
 | Status | Count |
 |--------|-------|
-| Done | 18 |
+| Done | 19 |
 | In Progress | 0 |
-| To Do | 11 |
+| To Do | 10 |
 | Blocked | 0 |
 
 ---
@@ -388,7 +388,7 @@
 - **Notes**: Pin yfinance version. Annualize vs. keep daily vol is a modeling choice — we keep daily stdev (matches the daily overnight return numerator; excess/vol is then dimensionally `daily_return / daily_return` which is unitless and interpretable). Documented in the function docstring. The `stock_20d_vol` column name in `signals` is retained for schema stability even if the lookback is retuned; the actual lookback used on any given day is recoverable via `scoring_config.vol_lookback_days` at query time.
 
 ### TASK-012: Outcome engine + scorecard aggregator
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), test-validator (QA)
 - **Complexity**: Medium
 - **Depends on**: TASK-011, TASK-003

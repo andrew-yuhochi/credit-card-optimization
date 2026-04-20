@@ -1,0 +1,54 @@
+TASK-012: Outcome Engine + Scorecard Aggregator Demo
+=======================================================
+
+Signal date        : 2026-04-13 (Monday)
+prev_trading_day   : 2026-04-10 (Friday — weekend crossing)
+Good Friday 2026-04-03 is trading day: False
+prev of 2026-04-06 (Mon after Good Fri): 2026-04-02 (should be Thu 2026-04-02)
+
+── First run ────────────────────────────────────────
+Signals processed (MSFT pre-scored → skipped): 3
+
+── Outcome results ──────────────────────────────────
+  AAPL LONG  (stock up → LONG positive)
+    overnight_return  = 0.007692
+    tradeable_return  = 0.017812
+    spy_return        = 0.004
+    stock_20d_vol     = 0.018
+    excess_vol_score  = 1.202279
+    price_data_source = yfinance
+
+  GME  SHORT (stock up → SHORT negative)
+    overnight_return  = 0.016667
+    tradeable_return  = 0.081967
+    spy_return        = 0.004
+    stock_20d_vol     = 0.018
+    excess_vol_score  = -5.777778
+    price_data_source = yfinance
+
+  FAIL LONG  (price unavailable)
+    overnight_return  = None
+    tradeable_return  = None
+    spy_return        = None
+    stock_20d_vol     = None
+    excess_vol_score  = None
+    price_data_source = unavailable
+
+  MSFT LONG  (pre-scored, idempotency)
+    overnight_return  = None
+    tradeable_return  = None
+    spy_return        = None
+    stock_20d_vol     = None
+    excess_vol_score  = 3.14
+    price_data_source = None
+
+── Idempotency: second run ──────────────────────────
+Processed: 1
+(AAPL/GME/MSFT skipped — already scored;
+ FAIL retried since excess_vol_score still NULL per spec)
+
+── ScorecardAggregator ──────────────────────────────
+  handle=AltaFoxCapital  avg_excess_vol=-0.4785  n_signals=3
+trading_days_with_signals: 1  (< 20 → ⚠️ Sample still building)
+
+Demo complete.
