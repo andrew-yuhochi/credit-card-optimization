@@ -2,7 +2,7 @@
 
 > **Purpose**: Track requirements discovered during implementation that were NOT in the original PRD.
 > **Rule**: Items here are **not approved for implementation** until explicitly promoted to TASKS.md by the user.
-> **Last Updated**: 2026-04-20 (BL-007 added)
+> **Last Updated**: 2026-04-19
 
 ## Backlog Items
 
@@ -12,9 +12,6 @@
 | BL-002 | PRD §6.16 and §6.18 still describe old conviction dots and disclaimer footer — §8 overrides 14–16 conflict with §6 governance precedence rule; §6 needs updating to match what was built | Architect review, Milestone 1 close, 2026-04-19 | 2026-04-19 | Medium | Open |
 | BL-003 | Disclaimer footer (PRD §11 risk control) must be reinstated in §11 risk table when re-enabled before any non-personal-use distribution (MVP Beta / shared access) | Architect review, Milestone 1 close, 2026-04-19 | 2026-04-19 | High | Open |
 | BL-004 | MVP reliability edge cases: account suspended mid-run; twikit rate-limit + retry; Claude API timeout; DB write fail mid-pipeline; partial signal batch; Twilio 429; message over 4,000 chars | BA alignment check, Milestone 2 close, 2026-04-19 | 2026-04-19 | Medium | Open (MVP) |
-| BL-005 | `--date YYYY-MM-DD` CLI flag for pipeline morning/evening to override the calendar date — enables reproducible dry-run demos and debugging on non-trading days | test-validator review TASK-013, 2026-04-19 | 2026-04-19 | Low | Open (MVP) |
-| BL-006 | Upgrade GitHub Actions to Node.js 24-compatible versions — `actions/checkout@v4` and `actions/setup-python@v5` use deprecated Node.js 20; upgrade to v5/v6 before June 2, 2026 deadline. Affects `morning_alert.yml`, `evening_summary.yml`, `market_hours_poll.yml`. | GitHub Actions deprecation warning, 2026-04-20 | 2026-04-20 | Low | Open |
-| BL-007 | Wire engagement velocity (intraday snapshots) into outcome scoring — `market_hours_poll` already collects `engagement_snapshots` every 2h; in MVP connect to amplifier scorer so evening summary weights signals by intraday velocity (e.g. 300% engagement gain by noon → higher confidence). Poll runs in PoC but output is not consumed by the evening pipeline. | User decision, 2026-04-20 | 2026-04-20 | Medium | Open (MVP) |
 
 ## Item Detail
 
@@ -41,25 +38,6 @@
 - **PRD Impact**: MVP PRD §11 risk mitigations section; adds reliability acceptance criteria
 - **Effort Estimate**: Medium — 7 test scenarios + retry/fallback logic in orchestrator and delivery layer
 - **Decision**: Open — promote to MVP TASKS.md when MVP phase begins
-
----
-
-### BL-007: Wire engagement velocity (intraday snapshots) into outcome scoring
-- **Source**: User decision — deferred from PoC to MVP (2026-04-20)
-- **Context**: The `market_hours_poll` workflow already collects `engagement_snapshots` (likes, reposts, views) every 2h during market hours. In PoC, this data is gathered but not consumed by the evening pipeline. In MVP, connect it to the amplifier scorer so the evening summary can weight signals by intraday engagement velocity — e.g. a post that gained 300% engagement by noon is flagged as higher confidence. Not in scope for PoC validation.
-- **PRD Impact**: MVP PRD — new scoring input to amplifier scorer; `engagement_snapshots` table already exists
-- **Effort Estimate**: Medium — velocity calculation logic + amplifier scorer integration + evening pipeline wiring
-- **Decision**: Open — promote to MVP TASKS.md when MVP phase begins
-
----
-
-### BL-006: Upgrade GitHub Actions to Node.js 24-compatible versions
-- **Source**: GitHub Actions deprecation warning observed during CI run (2026-04-20)
-- **Context**: `actions/checkout@v4` and `actions/setup-python@v5` in all three workflow files (`.github/workflows/morning_alert.yml`, `evening_summary.yml`, `market_hours_poll.yml`) use Node.js 20, which is deprecated. GitHub will force Node.js 24 by default starting June 2, 2026. Upgrade to `actions/checkout@v5` and `actions/setup-python@v6` before that deadline.
-- **PRD Impact**: None — CI infrastructure only, no user-facing behavior change.
-- **Effort Estimate**: Trivial — version bump in three YAML files
-- **Deadline**: June 2, 2026
-- **Decision**: Open — promote to TASKS.md before June 2, 2026
 
 ---
 
