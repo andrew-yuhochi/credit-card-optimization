@@ -129,7 +129,7 @@ This TASKS.md supersedes the 28-task PoC that shipped 2026-04-13 → 2026-04-16.
 - **Demo Artifact**: The generated `exports/xgboost-YYYYMMDD.md` file, plus a screenshot of `python -m src.signal report --days 30` output. Save both to `docs/paper-monitoring/poc/demos/milestone-1/`.
 
 ### TASK-M1-005: GraphExporter (Obsidian vault + Neo4j Cypher) + local setup documentation
-- **Status**: To Do
+- **Status**: Done (2026-04-19)
 - **Agent**: data-pipeline (impl), content-writer (README docs), test-validator (QA)
 - **Complexity**: M
 - **Depends on**: TASK-M1-001, TASK-M1-003

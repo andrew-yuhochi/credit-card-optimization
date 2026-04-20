@@ -1,0 +1,67 @@
+TASK-M1-005 — GraphExporter Export Run Summary
+===============================================
+Date: 2026-04-19
+Database: projects/paper-monitoring/data/paper_monitoring.db
+user_id: default
+
+── Obsidian Vault ──────────────────────────────────────────
+Command:  python -m src.export --format obsidian
+Output:   projects/paper-monitoring/obsidian_vault/concepts/
+Files:    15 concept Markdown files
+
+Concept files written:
+  adaboost.md
+  bagging.md
+  boosting.md
+  cart.md
+  catboost.md
+  decision-tree.md
+  extra-trees.md
+  gradient-boosting.md
+  histogram-based-gradient-boosting.md
+  information-gain-id3-c4-5.md
+  isolation-forest.md
+  lightgbm.md
+  oblivious-trees.md
+  random-forest.md
+  xgboost.md
+
+Each file contains:
+  - YAML frontmatter: name, concept_type, introduced_year, domain_tags, source_refs
+  - Body: what_it_is, what_problem_it_solves
+  - Wikilinked relationship sections: Builds On, Alternative To, Prerequisite Of
+    (with narrative labels inlined after the wikilink)
+  - Content Angles section
+
+── Neo4j Cypher ────────────────────────────────────────────
+Command:  python -m src.export --format neo4j
+Output:   projects/paper-monitoring/cypher_exports/graph-20260419.cypher
+Lines:    124
+Concepts: 15 CREATE statements
+Rels:     101 MATCH...CREATE relationship statements
+Load:     cypher-shell -f cypher_exports/graph-20260419.cypher
+
+── Cytoscape JSON ──────────────────────────────────────────
+Command:  python -m src.export --format cytoscape
+Output:   projects/paper-monitoring/exports/graph-20260419.json
+Nodes:    15
+Edges:    101
+
+── User Action Required ────────────────────────────────────
+Two acceptance criteria (#5 and #6) require manual validation:
+
+  AC#5 — Obsidian:
+    1. Open Obsidian
+    2. Add vault: projects/paper-monitoring/obsidian_vault/
+    3. Open Graph View — should show 15 concept nodes
+    4. Open xgboost.md — click wikilinks to navigate BUILDS_ON / ALTERNATIVE_TO neighbors
+    5. Save screenshot to: docs/paper-monitoring/poc/demos/milestone-1/TASK-M1-005-obsidian.png
+
+  AC#6 — Neo4j Browser:
+    1. brew install neo4j (if not already installed)
+    2. neo4j start
+    3. cypher-shell -f projects/paper-monitoring/cypher_exports/graph-20260419.cypher
+    4. open http://localhost:7474
+    5. Run: MATCH p=(:Concept)-[:BUILDS_ON*1..5]->(:Concept) RETURN p LIMIT 50
+    6. Verify labeled edges show narrative labels (e.g. "Uses decision trees as base learners")
+    7. Save screenshot to: docs/paper-monitoring/poc/demos/milestone-1/TASK-M1-005-neo4j.png
